@@ -13,4 +13,13 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
     path('logout/', views.logout_view, name='logout'),
+    path('like/', views.toggle_like, name='toggle_like'),
+    path('comment/', views.add_comment, name='add_comment'),
+    path('comments/<int:post_id>/', views.get_comments, name='get_comments'),
+    path('profile/', views.profile, name='profile'),
+    path('profile/<str:username>/', views.user_profile_view, name='user_profile'),
+    path('toggle-friend/', views.toggle_friend, name='toggle_friend'),
+    path('search/', views.search_view, name='search'),
 ]
+
+

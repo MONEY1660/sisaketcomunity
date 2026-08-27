@@ -98,7 +98,7 @@ textarea:focus-visible,
   width: 100%;
   color: var(--ssk-brick);
   opacity: 0.55;
-  background-image: url("../img/mudmee-pattern.svg");
+  background-image: url("../img/mudmee-pattern.dd27dd52fedf.svg");
   background-repeat: repeat-x;
   background-size: 46px 14px;
   background-position: center;
@@ -726,7 +726,7 @@ textarea.ssk-textarea::placeholder { color: var(--ssk-umber-soft); opacity: 0.7;
   position: absolute;
   inset: 0;
   color: rgba(251, 241, 228, 0.5);
-  background-image: url("../img/mudmee-pattern.svg");
+  background-image: url("../img/mudmee-pattern.dd27dd52fedf.svg");
   background-size: 92px 46px;
   opacity: 0.08;
   mix-blend-mode: overlay;
@@ -1199,231 +1199,15 @@ textarea.ssk-textarea::placeholder { color: var(--ssk-umber-soft); opacity: 0.7;
 }
 
 /* ============================================================
-   Mobile Responsiveness & Symmetrical Smartphone Design
+   Utility
    ============================================================ */
-
-@media (max-width: 768px) {
-  /* Navigation Bar on Mobile */
-  .ssk-nav {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .ssk-nav__inner {
-    padding: 10px 14px;
-    height: auto;
-    min-height: 58px;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  .ssk-brand {
-    font-size: 1.15rem;
-  }
-  .ssk-nav__search {
-    order: 3;
-    flex: 1 1 100%;
-    max-width: 100%;
-    padding: 7px 14px;
-    margin-top: 2px;
-  }
-  .ssk-nav__actions {
-    gap: 8px;
-  }
-  .ssk-nav__actions .ssk-nav__link {
-    display: none; /* Keep header clean on mobile; avatar/profile handles navigation */
-  }
-  .ssk-nav__actions .btn {
-    padding: 6px 12px;
-    font-size: 0.82rem;
-  }
-
-  /* Page Shell & Container */
-  .ssk-page {
-    padding: 14px 12px 60px;
-    gap: 16px;
-  }
-  .ssk-page--with-rail {
-    grid-template-columns: 1fr;
-  }
-  .ssk-rail {
-    margin-top: 10px;
-  }
-
-  /* Hero Section */
-  .ssk-hero {
-    padding: 24px 14px 0;
-  }
-  .ssk-hero__inner {
-    padding-bottom: 20px;
-  }
-  .ssk-hero h1 {
-    font-size: 1.35rem;
-  }
-  .ssk-hero p {
-    font-size: 0.88rem;
-  }
-
-  /* Feed & Cards Symmetry */
-  .ssk-feed {
-    gap: 14px;
-  }
-  .ssk-card {
-    border-radius: var(--radius-md);
-  }
-  .ssk-card__head {
-    padding: 12px 14px 10px;
-  }
-  .ssk-card__body {
-    padding: 0 14px 10px;
-    font-size: 0.94rem;
-  }
-  .ssk-tags {
-    padding: 0 14px 10px;
-    gap: 6px;
-  }
-  .ssk-tag {
-    font-size: 0.75rem;
-    padding: 4px 10px;
-  }
-  .ssk-card__footer {
-    padding: 6px 6px;
-  }
-  .ssk-action {
-    padding: 8px 6px;
-    font-size: 0.8rem;
-    min-height: 40px;
-  }
-  .ssk-action svg {
-    width: 17px;
-    height: 17px;
-  }
-
-  /* Comments on Mobile */
-  .comment-section {
-    padding: 12px;
-  }
-  .comment-item {
-    padding: 8px 10px;
-    gap: 8px;
-  }
-  .comment-avatar,
-  .comment-avatar-fallback {
-    width: 28px;
-    height: 28px;
-    font-size: 0.75rem;
-  }
-  .comment-text {
-    font-size: 0.85rem;
-  }
-
-  /* Composer / Create Post */
-  .ssk-composer {
-    padding: 18px 14px;
-    border-radius: var(--radius-md);
-  }
-  .ssk-dropzone {
-    padding: 24px 12px;
-  }
-  .ssk-composer__footer {
-    flex-direction: column-reverse;
-    gap: 8px;
-  }
-  .ssk-composer__footer .btn {
-    width: 100%;
-    text-align: center;
-  }
-
-  /* Profile Card on Mobile */
-  .ssk-profile-card {
-    padding: 18px 14px;
-    border-radius: var(--radius-md);
-  }
-  .ssk-profile-top {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 14px;
-  }
-  .ssk-profile-main {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 12px;
-  }
-  .ssk-profile-meta {
-    justify-content: center;
-    font-size: 0.82rem;
-  }
-  .ssk-profile-bio {
-    font-size: 0.88rem;
-    padding: 10px 12px;
-    text-align: left;
-  }
-  .ssk-profile-stats {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 8px;
-  }
-  .ssk-stat-box {
-    padding: 10px 6px;
-  }
-  .ssk-stat-number {
-    font-size: 1.35rem;
-  }
-  .ssk-stat-label {
-    font-size: 0.76rem;
-  }
-
-  /* Edit Profile Form on Mobile */
-  .ssk-edit-profile-section {
-    padding: 16px 12px;
-  }
-  .ssk-edit-profile-section form > div[style*="grid-template-columns: 1fr 1fr"] {
-    grid-template-columns: 1fr !important;
-    gap: 10px;
-  }
-  .ssk-edit-avatar-group {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  /* Search Page on Mobile */
-  .ssk-search-head {
-    padding: 16px 14px;
-  }
-  .ssk-people-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  /* Auth / Login / Register */
-  .ssk-auth {
-    grid-template-columns: 1fr;
-  }
-  .ssk-auth__brand-panel {
-    padding: 32px 20px 24px;
-    text-align: center;
-  }
-  .ssk-auth__quote {
-    display: none;
-  }
-  .ssk-auth__form-panel {
-    padding: 28px 16px 40px;
-  }
-}
-
-@media (max-width: 420px) {
-  .ssk-brand span {
-    font-size: 1.1rem;
-  }
-  .ssk-action span {
-    font-size: 0.76rem;
-  }
-  .ssk-profile-avatar-wrapper {
-    width: 76px;
-    height: 76px;
-  }
-  .ssk-profile-details h1 {
-    font-size: 1.3rem;
-  }
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
 }
 

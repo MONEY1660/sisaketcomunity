@@ -38,7 +38,16 @@ SECRET_KEY = os.environ.get(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = ['*']
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.vercel.app',
+    'https://*.now.sh',
+    'http://127.0.0.1',
+    'http://localhost',
+]
+
+WHITENOISE_MANIFEST_STRICT = False
 
 
 # Application definition
@@ -49,8 +58,10 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
+    'cloudinary',
     'sskapp',
 ]
 
@@ -140,12 +151,25 @@ STATICFILES_DIRS = []
 if (PROJECT_ROOT / 'sskapp' / 'static').exists():
     STATICFILES_DIRS.append(PROJECT_ROOT / 'sskapp' / 'static')
 
-# Use WhiteNoise to serve static files
+# Cloudinary Configuration
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'pbgpil2n'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '879931116375716'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'uFHkfxGAzpoy-vzqOmaBgyAPbTQ'),
+}
+
+# Storage Configuration
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+

@@ -16,10 +16,10 @@
       <span>Sisaket<span style="color: var(--ssk-gold);">Community</span></span>
     </a>
 
-    <div class="ssk-nav__search" role="search">
+    <form action="{% url 'search' %}" method="get" class="ssk-nav__search" role="search">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-      <input type="search" placeholder="ค้นหาเรื่องราว แท็ก หรือคนในชุมชน…" aria-label="ค้นหา">
-    </div>
+      <input type="search" name="q" value="{{ query|default:'' }}" placeholder="ค้นหาเรื่องราว แท็ก หรือคนในชุมชน…" aria-label="ค้นหา">
+    </form>
 
     <div class="ssk-nav__actions">
       {% if user_authenticated %}
@@ -27,8 +27,15 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
           โพสต์เรื่องราว
         </a>
+        <a href="{% url 'profile' %}" class="ssk-nav__link">โปรไฟล์</a>
         <a href="{% url 'logout' %}" class="ssk-nav__link">ออกจากระบบ</a>
-        <a href="{% url 'feed' %}" class="ssk-avatar" title="{{ display_name|default:'บัญชีของฉัน' }}" aria-label="โปรไฟล์ของฉัน">{{ display_name|default:'ศ'|first|upper }}</a>
+        {% if user_avatar_url %}
+          <a href="{% url 'profile' %}" class="ssk-avatar" style="padding:0; overflow:hidden;" title="{{ display_name|default:'โปรไฟล์ของฉัน' }}" aria-label="โปรไฟล์ของฉัน">
+            <img src="{{ user_avatar_url }}" alt="avatar" style="width:100%; height:100%; object-fit:cover;">
+          </a>
+        {% else %}
+          <a href="{% url 'profile' %}" class="ssk-avatar" title="{{ display_name|default:'โปรไฟล์ของฉัน' }}" aria-label="โปรไฟล์ของฉัน">{{ display_name|default:'ศ'|first|upper }}</a>
+        {% endif %}
       {% else %}
         <a href="{% url 'login' %}" class="ssk-nav__link">เข้าสู่ระบบ</a>
         <a href="{% url 'register' %}" class="btn btn--primary btn--sm">สมัครสมาชิก</a>

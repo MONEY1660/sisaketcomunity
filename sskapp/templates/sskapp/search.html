@@ -1,0 +1,208 @@
+{% extends "sskapp/base.html" %}
+{% load static %}
+{% block title %}ค้นหา: {{ query|default:"ชุมชนศรีสะเกษ" }} — ศรีสะเกษ Community{% endblock %}
+
+{% block content %}
+<div class="ssk-page ssk-page--with-rail">
+  <div class="ssk-feed">
+    
+    <!-- Search Form & Header -->
+    <div class="ssk-search-head" style="background: var(--ssk-white); border: 1px solid var(--ssk-line); border-radius: var(--radius-lg); padding: 22px; margin-bottom: 20px; box-shadow: var(--shadow-card);">
+      <h1 style="font-size: 1.4rem; margin-bottom: 12px;">
+        🔍 ผลการค้นหา {% if query %}สำหรับ "<span style="color: var(--ssk-brick);">{{ query }}</span>"{% endif %}
+      </h1>
+      <form action="{% url 'search' %}" method="get" style="display: flex; gap: 10px;">
+        <input type="search" name="q" value="{{ query|default:'' }}" placeholder="ค้นหาเรื่องราว แท็ก หรือคนในชุมชน…" class="form-control" style="flex:1;" autofocus>
+        <button type="submit" class="btn btn--primary">ค้นหา</button>
+      </form>
+      <div style="font-size: 0.88rem; color: var(--ssk-umber-soft); margin-top: 10px;">
+        พบผลลัพธ์ทั้งหมด <strong>{{ total_results }}</strong> รายการ (ผู้คน: {{ people_results|length }}, โพสต์: {{ posts_results|length }}, แท็ก: {{ tags_results|length }})
+      </div>
+    </div>
+
+    <!-- 1. People / Users Results -->
+    {% if people_results %}
+    <div class="ssk-search-section" style="margin-bottom: 24px;">
+      <h2 style="font-size: 1.15rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+        <span>👥 ผู้คนในชุมชน</span>
+        <span class="ssk-badge" style="background: #FCE7D6; color: var(--ssk-brick); padding: 2px 8px; border-radius: var(--radius-pill); font-size: 0.8rem;">{{ people_results|length }}</span>
+      </h2>
+      <div class="ssk-people-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px;">
+        {% for person in people_results %}
+        <div class="ssk-person-card" style="background: var(--ssk-white); border: 1px solid var(--ssk-line); border-radius: var(--radius-md); padding: 14px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <a href="{% url 'user_profile' person.username %}" style="flex-shrink: 0;">
+              {% if person.avatar_url %}
+                <img src="{{ person.avatar_url }}" alt="{{ person.display_name }}" class="ssk-avatar" style="object-fit: cover;">
+              {% else %}
+                <span class="ssk-avatar">{{ person.display_name|first|upper }}</span>
+              {% endif %}
+            </a>
+            <div style="flex: 1; min-width: 0;">
+              <a href="{% url 'user_profile' person.username %}" style="font-weight: 600; color: var(--ssk-umber); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                {{ person.display_name }}
+              </a>
+              <div style="font-size: 0.8rem; color: var(--ssk-umber-soft);">@{{ person.username }}</div>
+              <div style="font-size: 0.8rem; color: var(--ssk-umber-soft); margin-top: 2px;">📍 {{ person.location }}</div>
+            </div>
+          </div>
+
+          {% if person.bio %}
+          <div style="font-size: 0.85rem; color: var(--ssk-umber-soft); margin-top: 8px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            {{ person.bio }}
+          </div>
+          {% endif %}
+
+          <div style="margin-top: 12px; display: flex; gap: 8px;">
+            <a href="{% url 'user_profile' person.username %}" class="btn btn--outline btn--sm" style="flex: 1; text-align: center;">ดูโปรไฟล์</a>
+            {% if not person.is_me and user_authenticated %}
+            <button type="button" class="btn btn--sm friend-btn {% if person.is_friend %}btn--outline{% else %}btn--primary{% endif %}" data-username="{{ person.username }}" style="flex: 1;">
+              {% if person.is_friend %}✓ เป็นเพื่อนแล้ว{% else %}➕ เพิ่มเพื่อน{% endif %}
+            </button>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- 2. Matching Tags -->
+    {% if tags_results %}
+    <div class="ssk-search-section" style="margin-bottom: 24px; background: var(--ssk-white); border: 1px solid var(--ssk-line); border-radius: var(--radius-md); padding: 16px;">
+      <h2 style="font-size: 1.1rem; margin-bottom: 10px;">🏷️ แท็กที่เกี่ยวข้อง</h2>
+      <div class="ssk-tags">
+        {% for tag in tags_results %}
+        <a href="{% url 'feed' %}?tag={{ tag.name }}" class="ssk-tag" style="font-size: 0.92rem; padding: 6px 14px;">
+          #{{ tag.name }} <span style="opacity: 0.7; font-size: 0.8rem;">({{ tag.posts_count }})</span>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- 3. Posts Results -->
+    <div class="ssk-search-section">
+      <h2 style="font-size: 1.15rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+        <span>📝 เรื่องราวและโพสต์</span>
+        <span class="ssk-badge" style="background: #FCE7D6; color: var(--ssk-brick); padding: 2px 8px; border-radius: var(--radius-pill); font-size: 0.8rem;">{{ posts_results|length }}</span>
+      </h2>
+
+      {% for post in posts_results %}
+      <article class="ssk-card" id="post-{{ post.post_id }}" data-post-id="{{ post.post_id }}" style="margin-bottom: 16px;">
+        <div class="ssk-card__head">
+          <a href="{% url 'user_profile' post.author_username %}">
+            {% if post.author_avatar %}
+              <img src="{{ post.author_avatar }}" alt="avatar" class="ssk-avatar" style="object-fit: cover;">
+            {% else %}
+              <span class="ssk-avatar" aria-hidden="true">{{ post.author|first|upper }}</span>
+            {% endif %}
+          </a>
+          <div class="ssk-card__author">
+            <a href="{% url 'user_profile' post.author_username %}" class="ssk-card__author-name">{{ post.author }}</a>
+            <div class="ssk-card__meta">
+              <span>📍 {{ post.location }}</span>
+              <span aria-hidden="true">·</span>
+              <span>{{ post.time_ago }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ssk-card__body"><p>{{ post.text }}</p></div>
+
+        {% if post.media %}
+        <div class="ssk-card__media">
+          {% if post.is_video %}
+            <video controls playsinline style="max-height: 480px; width: 100%; object-fit: cover; border-radius: 8px; background: #000;">
+              <source src="{{ post.media.url }}" type="video/mp4">
+              เบราว์เซอร์ของคุณไม่รองรับการเล่นวิดีโอ
+            </video>
+          {% else %}
+            <img src="{{ post.media.url }}" alt="ภาพโพสต์" style="max-height: 480px; width: 100%; object-fit: cover; border-radius: 8px;">
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="ssk-tags">
+          {% for tag in post.tags %}
+          <a href="{% url 'feed' %}?tag={{ tag }}" class="ssk-tag">#{{ tag }}</a>
+          {% endfor %}
+        </div>
+
+        <div class="ssk-card__footer">
+          <button class="ssk-action like-btn {% if post.is_liked %}liked{% endif %}" type="button" data-post-id="{{ post.post_id }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-1 9H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h13.3a2 2 0 0 0 2-1.7l1.4-8A2 2 0 0 0 18.7 9z"/></svg>
+            ถูกใจ · <span class="likes-count">{{ post.likes }}</span>
+          </button>
+          <button class="ssk-action comment-btn" type="button" data-post-id="{{ post.post_id }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg>
+            แสดงความเห็น · <span class="comments-count">{{ post.comments }}</span>
+          </button>
+          <button class="ssk-action share-btn" type="button" data-post-id="{{ post.post_id }}" data-post-text="{{ post.text|truncatechars:40 }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v13"/></svg>
+            แชร์
+          </button>
+        </div>
+
+        <!-- Comment section -->
+        <div class="comment-section" data-post-id="{{ post.post_id }}" style="display: none;">
+          {% if user_authenticated %}
+          <form class="comment-form" data-post-id="{{ post.post_id }}">
+            <div class="form-group">
+              <textarea name="comment_text" placeholder="เขียนความคิดเห็นของคุณ..." rows="2" class="comment-textarea" required></textarea>
+            </div>
+            <div style="display:flex; justify-content:flex-end;">
+              <button type="submit" class="btn btn--primary btn--sm">โพสต์ความเห็น</button>
+            </div>
+          </form>
+          {% else %}
+          <div style="text-align: center; padding: 10px; font-size: 0.9rem; color: var(--ssk-umber-soft);">
+            <a href="{% url 'login' %}" style="color: var(--ssk-brick); text-decoration: underline; font-weight:600;">เข้าสู่ระบบ</a> เพื่อร่วมแสดงความคิดเห็น
+          </div>
+          {% endif %}
+          <div class="comments-list" data-post-id="{{ post.post_id }}"></div>
+        </div>
+      </article>
+      {% empty %}
+      {% if not people_results and not tags_results %}
+      <div class="ssk-empty" style="background: var(--ssk-white); border-radius: var(--radius-lg); border: 1px solid var(--ssk-line);">
+        <div class="ssk-empty__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="48" height="48"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </div>
+        <h3>ไม่พบผลการค้นหาสำหรับ "{{ query }}"</h3>
+        <p>ลองค้นหาด้วยคำอื่น เช่น ชื่ออำเภอ, ชื่อคน หรือหัวข้อที่คุณสนใจ</p>
+        <a href="{% url 'feed' %}" class="btn btn--primary" style="margin-top: 14px;">กลับหน้าฟีด</a>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+
+  </div>
+
+  <!-- Sidebar Rail -->
+  <aside class="ssk-rail">
+    <div class="ssk-rail__card">
+      <div class="ssk-rail__title">🔥 แท็กยอดนิยม</div>
+      <div class="ssk-rail__list">
+        {% for tag in trending_tags %}
+        <a href="{% url 'feed' %}?tag={{ tag.name }}" class="ssk-rail__item">
+          <span>#{{ tag.name }}</span>
+          <span class="ssk-rail__count">{{ tag.count }} โพสต์</span>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="ssk-rail__card">
+      <div class="ssk-rail__title">📍 อำเภอที่มีคนโพสต์เยอะ</div>
+      <div class="ssk-rail__list">
+        {% for place in active_places %}
+        <a href="{% url 'search' %}?q={{ place.name }}" class="ssk-rail__item">
+          <span>{{ place.name }}</span>
+          <span class="ssk-rail__count">{{ place.count }}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </aside>
+</div>
+{% endblock %}
