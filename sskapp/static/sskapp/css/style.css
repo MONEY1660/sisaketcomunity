@@ -1145,7 +1145,7 @@ textarea.ssk-textarea::placeholder { color: var(--ssk-umber-soft); opacity: 0.7;
 }
 .ssk-profile-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   margin-top: 20px;
   padding-top: 18px;
@@ -1196,6 +1196,44 @@ textarea.ssk-textarea::placeholder { color: var(--ssk-umber-soft); opacity: 0.7;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--ssk-gold);
+}
+
+/* ============================================================
+   Form controls (used in profile edit form)
+   ============================================================ */
+.form-control {
+  width: 100%;
+  border: 1px solid var(--ssk-line);
+  background: var(--ssk-white);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  color: var(--ssk-umber);
+  font-size: 0.94rem;
+  font-family: var(--font-body);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.form-control:focus {
+  outline: none;
+  border-color: var(--ssk-brick);
+  box-shadow: 0 0 0 3px rgba(216, 85, 30, 0.12);
+}
+.form-control::placeholder { color: #B7A692; }
+
+select.form-control {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B5847' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+/* Profile edit 2-column grid */
+.ssk-profile-edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
 }
 
 /* ============================================================
@@ -1360,7 +1398,7 @@ textarea.ssk-textarea::placeholder { color: var(--ssk-umber-soft); opacity: 0.7;
     text-align: left;
   }
   .ssk-profile-stats {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
   .ssk-stat-box {
@@ -1377,8 +1415,8 @@ textarea.ssk-textarea::placeholder { color: var(--ssk-umber-soft); opacity: 0.7;
   .ssk-edit-profile-section {
     padding: 16px 12px;
   }
-  .ssk-edit-profile-section form > div[style*="grid-template-columns: 1fr 1fr"] {
-    grid-template-columns: 1fr !important;
+  .ssk-profile-edit-grid {
+    grid-template-columns: 1fr;
     gap: 10px;
   }
   .ssk-edit-avatar-group {

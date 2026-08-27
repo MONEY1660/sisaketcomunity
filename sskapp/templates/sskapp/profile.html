@@ -70,7 +70,7 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+        <div class="ssk-profile-edit-grid">
           <div class="ssk-field">
             <label for="id_display_name">ชื่อที่แสดง</label>
             <input type="text" id="id_display_name" name="display_name" value="{{ display_name|default:'' }}" class="form-control" placeholder="เช่น น้ำฝน กันทรลักษ์" maxlength="30" required>
@@ -104,7 +104,7 @@
     </div>
 
     <!-- Stats Grid -->
-    <div class="ssk-profile-stats" style="grid-template-columns: repeat(4, 1fr);">
+    <div class="ssk-profile-stats">
       <div class="ssk-stat-box">
         <div class="ssk-stat-number">{{ total_posts_count }}</div>
         <div class="ssk-stat-label">โพสต์ทั้งหมด</div>

@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  // Helper to read Django CSRF Token
+  // Helper to read Django CSRF Token (cookie first, then meta tag fallback for Vercel)
   function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== "") {
@@ -16,6 +16,16 @@
       }
     }
     return cookieValue;
+  }
+
+  function getCsrfToken() {
+    // Try cookie first
+    var fromCookie = getCookie("csrftoken");
+    if (fromCookie) return fromCookie;
+    // Fallback: read from meta tag (Vercel serverless)
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta) return meta.getAttribute("content");
+    return "";
   }
 
   // Toast notification
@@ -107,7 +117,7 @@
           return;
         }
 
-        var csrf = getCookie("csrftoken");
+        var csrf = getCsrfToken();
         fetch("/like/", {
           method: "POST",
           headers: {
@@ -171,7 +181,7 @@
         var username = friendBtn.getAttribute("data-username");
         if (!username) return;
 
-        var csrf = getCookie("csrftoken");
+        var csrf = getCsrfToken();
         fetch("/toggle-friend/", {
           method: "POST",
           headers: {

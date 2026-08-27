@@ -47,6 +47,13 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost',
 ]
 
+# Cookie settings for Vercel serverless (cross-origin POST/AJAX support)
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = False  # JS must be able to read csrftoken cookie
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
+
 WHITENOISE_MANIFEST_STRICT = False
 
 
