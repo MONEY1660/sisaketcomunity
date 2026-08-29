@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Count, Sum, Q
@@ -116,6 +117,7 @@ def index(request):
     return redirect("feed")
 
 
+@ensure_csrf_cookie
 def feed(request):
     tag_filter = request.GET.get('tag', '').strip().lstrip('#')
     
@@ -210,9 +212,11 @@ def create_post(request):
     return render(request, "sskapp/create_post.html", context)
 
 
-@login_required
 @require_POST
 def toggle_like(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'กรุณาเข้าสู่ระบบก่อนกดถูกใจ', 'authenticated': False}, status=401)
+
     post_id = request.POST.get('post_id')
     if not post_id or post_id == '0':
         return JsonResponse({'error': 'Invalid post'}, status=400)
@@ -265,9 +269,11 @@ def get_comments(request, post_id):
     return JsonResponse({'comments': data})
 
 
-@login_required
 @require_POST
 def add_comment(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'กรุณาเข้าสู่ระบบก่อนแสดงความคิดเห็น', 'authenticated': False}, status=401)
+
     post_id = request.POST.get('post_id')
     text = request.POST.get('text', '').strip()
 
@@ -309,9 +315,11 @@ def add_comment(request):
     })
 
 
-@login_required
 @require_POST
 def toggle_friend(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'กรุณาเข้าสู่ระบบก่อนเพิ่มเพื่อน', 'authenticated': False}, status=401)
+
     target_username = request.POST.get('username', '').strip()
     if not target_username or target_username == request.user.username:
         return JsonResponse({'error': 'ไม่สามารถเพิ่มตัวเองเป็นเพื่อนได้'}, status=400)
@@ -336,6 +344,7 @@ def toggle_friend(request):
     })
 
 
+@ensure_csrf_cookie
 @login_required
 def profile(request):
     user_prof, _ = UserProfile.objects.get_or_create(user=request.user)
@@ -424,6 +433,7 @@ def profile(request):
     return render(request, "sskapp/profile.html", context)
 
 
+@ensure_csrf_cookie
 def user_profile_view(request, username):
     if request.user.is_authenticated and request.user.username == username:
         return redirect("profile")
@@ -488,6 +498,7 @@ def user_profile_view(request, username):
     return render(request, "sskapp/user_profile.html", context)
 
 
+@ensure_csrf_cookie
 def search_view(request):
     query = request.GET.get('q', '').strip()
     tag_query = query.lstrip('#')

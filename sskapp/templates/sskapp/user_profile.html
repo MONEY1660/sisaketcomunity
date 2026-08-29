@@ -3,7 +3,7 @@
 {% block title %}โปรไฟล์ {{ target_display_name }} (@{{ target_user.username }}) — ศรีสะเกษ Community{% endblock %}
 
 {% block content %}
-<div class="ssk-page">
+<div class="ssk-page ssk-profile-page">
 
   <!-- Profile Card for Other User -->
   <div class="ssk-profile-card">
@@ -25,14 +25,14 @@
             </span>
             {% if profile.website %}
             <span class="ssk-profile-meta-item">
-              🌐 <a href="{{ profile.website }}" target="_blank" rel="noopener noreferrer" style="color: var(--ssk-brick); text-decoration: underline;">{{ profile.website }}</a>
+              🌐 <a href="{{ profile.website }}" target="_blank" rel="noopener noreferrer" class="ssk-profile-link">{{ profile.website }}</a>
             </span>
             {% endif %}
           </div>
         </div>
       </div>
 
-      <div>
+      <div class="ssk-profile-actions">
         {% if user_authenticated %}
           <button type="button" class="btn btn--sm friend-btn {% if is_friend %}btn--outline{% else %}btn--primary{% endif %}" data-username="{{ target_user.username }}">
             {% if is_friend %}✓ เป็นเพื่อนแล้ว{% else %}➕ เพิ่มเพื่อน{% endif %}
@@ -72,7 +72,7 @@
 
   <!-- Target User's Posts Section -->
   <div class="ssk-profile-posts-wrapper">
-    <h2 style="font-size: 1.3rem; margin-bottom: 18px;">📝 เรื่องราวจาก {{ target_display_name }} ({{ user_posts|length }})</h2>
+    <h2 class="ssk-section-heading">📝 เรื่องราวจาก {{ target_display_name }} ({{ user_posts|length }})</h2>
 
     <div class="ssk-feed">
       {% for post in user_posts %}
@@ -98,12 +98,12 @@
         {% if post.media %}
         <div class="ssk-card__media">
           {% if post.is_video %}
-            <video controls playsinline style="max-height: 480px; width: 100%; object-fit: cover; border-radius: 8px; background: #000;">
+            <video controls playsinline class="ssk-card__video">
               <source src="{{ post.media.url }}" type="video/mp4">
               เบราว์เซอร์ของคุณไม่รองรับการเล่นวิดีโอ
             </video>
           {% else %}
-            <img src="{{ post.media.url }}" alt="ภาพโพสต์" style="max-height: 480px; width: 100%; object-fit: cover; border-radius: 8px;">
+            <img src="{{ post.media.url }}" alt="ภาพโพสต์" class="ssk-card__img">
           {% endif %}
         </div>
         {% endif %}
@@ -117,15 +117,15 @@
         <div class="ssk-card__footer">
           <button class="ssk-action like-btn {% if post.is_liked %}liked{% endif %}" type="button" data-post-id="{{ post.post_id }}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-1 9H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h13.3a2 2 0 0 0 2-1.7l1.4-8A2 2 0 0 0 18.7 9z"/></svg>
-            ถูกใจ · <span class="likes-count">{{ post.likes }}</span>
+            <span class="action-text">ถูกใจ</span> · <span class="likes-count">{{ post.likes }}</span>
           </button>
           <button class="ssk-action comment-btn" type="button" data-post-id="{{ post.post_id }}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1 3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg>
-            แสดงความเห็น · <span class="comments-count">{{ post.comments }}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg>
+            <span class="action-text">ความเห็น</span> · <span class="comments-count">{{ post.comments }}</span>
           </button>
           <button class="ssk-action share-btn" type="button" data-post-id="{{ post.post_id }}" data-post-text="{{ post.text|truncatechars:40 }}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v13"/></svg>
-            แชร์
+            <span class="action-text">แชร์</span>
           </button>
         </div>
 
@@ -136,13 +136,13 @@
             <div class="form-group">
               <textarea name="comment_text" placeholder="เขียนความคิดเห็นของคุณ..." rows="2" class="comment-textarea" required></textarea>
             </div>
-            <div style="display:flex; justify-content:flex-end;">
+            <div class="comment-submit-row">
               <button type="submit" class="btn btn--primary btn--sm">โพสต์ความเห็น</button>
             </div>
           </form>
           {% else %}
-          <div style="text-align: center; padding: 10px; font-size: 0.9rem; color: var(--ssk-umber-soft);">
-            <a href="{% url 'login' %}" style="color: var(--ssk-brick); text-decoration: underline; font-weight:600;">เข้าสู่ระบบ</a> เพื่อร่วมแสดงความคิดเห็น
+          <div class="comment-login-hint">
+            <a href="{% url 'login' %}">เข้าสู่ระบบ</a> เพื่อร่วมแสดงความคิดเห็น
           </div>
           {% endif %}
           <div class="comments-list" data-post-id="{{ post.post_id }}"></div>

@@ -951,18 +951,84 @@ textarea.ssk-textarea::placeholder { color: var(--ssk-umber-soft); opacity: 0.7;
    Interactive Features: Likes, Comments, Share, and Profile
    ============================================================ */
 
+/* Card Actions / Footer 3-Column Symmetrical Layout */
+.ssk-card__footer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
+  border-top: 1px solid var(--ssk-line);
+  padding: 4px 6px;
+  background: var(--ssk-white);
+  border-bottom-left-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+  gap: 4px;
+}
+
+.ssk-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 6px;
+  border: none;
+  background: transparent;
+  color: var(--ssk-umber-soft);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  user-select: none;
+  width: 100%;
+  text-align: center;
+  min-height: 42px;
+}
+
+.ssk-action svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  transition: transform 0.15s ease, stroke 0.15s ease, fill 0.15s ease;
+}
+
+.ssk-action:hover {
+  background: var(--ssk-cream-soft);
+  color: var(--ssk-brick);
+}
+
+.ssk-action:active {
+  transform: scale(0.96);
+}
+
 /* Like Button Active / Liked State */
 .ssk-action.liked,
 .ssk-action--active {
   color: var(--ssk-brick) !important;
   font-weight: 600;
 }
+
 .ssk-action.liked svg,
 .ssk-action--active svg {
   stroke: var(--ssk-brick);
   fill: var(--ssk-brick);
-  transform: scale(1.1);
-  transition: transform 0.15s ease, fill 0.15s ease;
+  transform: scale(1.12);
+}
+
+/* Card Media Uniformity */
+.ssk-card__media {
+  margin: 0 0 12px;
+  width: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+.ssk-card__img,
+.ssk-card__video {
+  width: 100%;
+  max-height: 520px;
+  object-fit: cover;
+  display: block;
 }
 
 /* Comment Section */
@@ -972,14 +1038,17 @@ textarea.ssk-textarea::placeholder { color: var(--ssk-umber-soft); opacity: 0.7;
   padding: 16px;
   border-bottom-left-radius: var(--radius-md);
   border-bottom-right-radius: var(--radius-md);
-  margin-top: 12px;
+  animation: fadeInComment 0.25s ease-out;
 }
+
 .comment-form {
   margin-bottom: 14px;
 }
+
 .comment-form .form-group {
   margin-bottom: 8px;
 }
+
 .comment-textarea {
   width: 100%;
   padding: 10px 14px;
@@ -989,119 +1058,171 @@ textarea.ssk-textarea::placeholder { color: var(--ssk-umber-soft); opacity: 0.7;
   color: var(--ssk-umber);
   resize: vertical;
   font-size: 0.92rem;
+  font-family: var(--font-body);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
+
 .comment-textarea:focus {
   border-color: var(--ssk-brick);
   box-shadow: 0 0 0 3px rgba(216, 85, 30, 0.12);
   outline: none;
 }
+
+.comment-submit-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.comment-login-hint {
+  text-align: center;
+  padding: 12px;
+  font-size: 0.9rem;
+  color: var(--ssk-umber-soft);
+  background: var(--ssk-white);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--ssk-line);
+  margin-bottom: 12px;
+}
+
+.comment-login-hint a {
+  color: var(--ssk-brick);
+  text-decoration: underline;
+  font-weight: 600;
+}
+
 .comments-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
+
 .comment-item {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   background: var(--ssk-white);
   border: 1px solid var(--ssk-line);
   border-radius: var(--radius-sm);
   padding: 10px 14px;
   animation: fadeInComment 0.2s ease-out;
 }
+
 @keyframes fadeInComment {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
 .comment-avatar {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
 }
+
 .comment-avatar-fallback {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: var(--ssk-gold);
-  color: var(--ssk-umber);
+  background: #FCE7D6;
+  color: var(--ssk-brick-dark);
   font-weight: 700;
   display: grid;
   place-items: center;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   flex-shrink: 0;
 }
+
 .comment-content {
   flex: 1;
+  min-width: 0;
 }
+
 .comment-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   margin-bottom: 3px;
 }
+
 .comment-author-name {
   font-weight: 600;
   font-size: 0.88rem;
   color: var(--ssk-umber);
 }
+
 .comment-time {
   font-size: 0.76rem;
   color: var(--ssk-umber-soft);
 }
+
 .comment-text {
   font-size: 0.9rem;
   color: var(--ssk-umber);
   line-height: 1.45;
   word-break: break-word;
 }
+
 .comment-empty-hint {
   text-align: center;
   color: var(--ssk-umber-soft);
   font-size: 0.86rem;
-  padding: 12px;
+  padding: 14px;
+  background: var(--ssk-white);
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--ssk-line);
 }
 
 /* ============================================================
    Profile Page & Edit Profile
    ============================================================ */
+.ssk-profile-page {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
 .ssk-profile-card {
   background: var(--ssk-white);
   border: 1px solid var(--ssk-line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  padding: 28px;
-  margin-bottom: 24px;
+  padding: 26px;
+  margin-bottom: 22px;
 }
+
 .ssk-profile-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
-  flex-wrap: wrap;
 }
+
 .ssk-profile-main {
   display: flex;
   align-items: center;
   gap: 20px;
+  flex: 1;
+  min-width: 0;
 }
+
 .ssk-profile-avatar-wrapper {
   position: relative;
-  width: 90px;
-  height: 90px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
   border: 3px solid var(--ssk-gold);
   overflow: hidden;
   background: var(--ssk-cream);
   flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(58, 42, 30, 0.1);
 }
+
 .ssk-profile-avatar-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+
 .ssk-profile-avatar-letter {
   width: 100%;
   height: 100%;
@@ -1112,15 +1233,24 @@ textarea.ssk-textarea::placeholder { color: var(--ssk-umber-soft); opacity: 0.7;
   color: var(--ssk-brick-dark);
   background: #FCE7D6;
 }
+
+.ssk-profile-details {
+  flex: 1;
+  min-width: 0;
+}
+
 .ssk-profile-details h1 {
   font-size: 1.5rem;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
+  word-break: break-word;
 }
+
 .ssk-profile-handle {
   color: var(--ssk-umber-soft);
   font-size: 0.9rem;
   margin-bottom: 8px;
 }
+
 .ssk-profile-meta {
   display: flex;
   gap: 14px;
@@ -1128,21 +1258,35 @@ textarea.ssk-textarea::placeholder { color: var(--ssk-umber-soft); opacity: 0.7;
   color: var(--ssk-umber-soft);
   flex-wrap: wrap;
 }
+
 .ssk-profile-meta-item {
   display: inline-flex;
   align-items: center;
   gap: 5px;
 }
+
+.ssk-profile-link {
+  color: var(--ssk-brick);
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+.ssk-profile-actions {
+  flex-shrink: 0;
+}
+
 .ssk-profile-bio {
   margin-top: 16px;
   font-size: 0.95rem;
   color: var(--ssk-umber);
-  line-height: 1.5;
+  line-height: 1.55;
   background: var(--ssk-cream-soft);
-  padding: 12px 16px;
+  padding: 12px 18px;
   border-radius: var(--radius-sm);
-  border-left: 3px solid var(--ssk-gold);
+  border-left: 4px solid var(--ssk-gold);
+  word-break: break-word;
 }
+
 .ssk-profile-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1151,39 +1295,35 @@ textarea.ssk-textarea::placeholder { color: var(--ssk-umber-soft); opacity: 0.7;
   padding-top: 18px;
   border-top: 1px solid var(--ssk-line);
 }
+
 .ssk-stat-box {
   background: var(--ssk-cream-soft);
   border: 1px solid var(--ssk-line);
   border-radius: var(--radius-md);
-  padding: 14px;
+  padding: 14px 10px;
   text-align: center;
+  transition: transform 0.15s ease;
 }
+
+.ssk-stat-box:hover {
+  transform: translateY(-2px);
+}
+
 .ssk-stat-number {
   font-family: var(--font-display);
-  font-size: 1.6rem;
+  font-size: 1.55rem;
   font-weight: 700;
   color: var(--ssk-brick);
-  line-height: 1;
+  line-height: 1.1;
 }
+
 .ssk-stat-label {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--ssk-umber-soft);
   margin-top: 4px;
 }
 
-/* Edit Profile Drawer / Section */
-.ssk-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  line-height: 1;
-}
-
-.ssk-profile-posts-wrapper {
-  width: 100%;
-}
-
+/* Edit Profile Drawer */
 .ssk-edit-profile-section {
   background: var(--ssk-cream-soft);
   border: 1px solid var(--ssk-line);
@@ -1193,26 +1333,65 @@ textarea.ssk-textarea::placeholder { color: var(--ssk-umber-soft); opacity: 0.7;
   display: none;
   animation: fadeInComment 0.25s ease-out;
 }
+
 .ssk-edit-profile-section.is-open {
   display: block;
 }
+
+.ssk-edit-profile-title {
+  font-size: 1.15rem;
+  margin-bottom: 16px;
+}
+
 .ssk-edit-avatar-group {
   display: flex;
   align-items: center;
   gap: 16px;
   margin-bottom: 16px;
 }
+
+.ssk-avatar--preview {
+  width: 60px;
+  height: 60px;
+  font-size: 1.5rem;
+}
+
 .ssk-avatar-preview-small {
   width: 60px;
   height: 60px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--ssk-gold);
+  flex-shrink: 0;
 }
 
-/* ============================================================
-   Form controls (used in profile edit form)
-   ============================================================ */
+.ssk-edit-avatar-info {
+  flex: 1;
+}
+
+.ssk-profile-edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.ssk-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 14px;
+}
+
+.ssk-field label,
+.ssk-field__label {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--ssk-umber);
+  margin-bottom: 6px;
+}
+
 .form-control {
   width: 100%;
   border: 1px solid var(--ssk-line);
@@ -1224,11 +1403,13 @@ textarea.ssk-textarea::placeholder { color: var(--ssk-umber-soft); opacity: 0.7;
   font-family: var(--font-body);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
+
 .form-control:focus {
   outline: none;
   border-color: var(--ssk-brick);
   box-shadow: 0 0 0 3px rgba(216, 85, 30, 0.12);
 }
+
 .form-control::placeholder { color: #B7A692; }
 
 select.form-control {
@@ -1240,12 +1421,114 @@ select.form-control {
   cursor: pointer;
 }
 
-/* Profile edit 2-column grid */
-.ssk-profile-edit-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+.form-control--file {
+  font-size: 0.85rem;
+  padding: 8px 12px;
+}
+
+.ssk-textarea-sm {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.ssk-edit-form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+/* Friends Section */
+.ssk-friends-card {
+  background: var(--ssk-white);
+  border: 1px solid var(--ssk-line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+  margin-bottom: 22px;
+}
+
+.ssk-friends-head {
+  font-size: 1.15rem;
   margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ssk-badge--primary {
+  background: #FCE7D6;
+  color: var(--ssk-brick);
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.82rem;
+}
+
+.ssk-friends-scroll {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ssk-gold) transparent;
+}
+
+.ssk-friends-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.ssk-friends-scroll::-webkit-scrollbar-thumb {
+  background: var(--ssk-gold);
+  border-radius: 4px;
+}
+
+.ssk-friend-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 76px;
+  text-align: center;
+  flex-shrink: 0;
+  text-decoration: none;
+  transition: transform 0.15s ease;
+}
+
+.ssk-friend-item:hover {
+  transform: translateY(-2px);
+}
+
+.ssk-friend-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--ssk-gold);
+}
+
+.ssk-friend-fallback {
+  width: 52px;
+  height: 52px;
+  font-size: 1.25rem;
+}
+
+.ssk-friend-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ssk-umber);
+  margin-top: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.ssk-profile-posts-wrapper {
+  width: 100%;
+}
+
+.ssk-section-heading {
+  font-size: 1.25rem;
+  margin-bottom: 16px;
+  color: var(--ssk-umber);
 }
 
 /* ============================================================
@@ -1253,7 +1536,7 @@ select.form-control {
    ============================================================ */
 
 @media (max-width: 768px) {
-  /* Navigation Bar on Mobile */
+  /* Navigation Bar Symmetrical on Mobile */
   .ssk-nav {
     position: sticky;
     top: 0;
@@ -1262,9 +1545,12 @@ select.form-control {
   .ssk-nav__inner {
     padding: 10px 14px;
     height: auto;
-    min-height: 58px;
+    min-height: 56px;
     gap: 10px;
+    display: flex;
     flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
   }
   .ssk-brand {
     font-size: 1.15rem;
@@ -1273,24 +1559,30 @@ select.form-control {
     order: 3;
     flex: 1 1 100%;
     max-width: 100%;
-    padding: 7px 14px;
-    margin-top: 2px;
+    padding: 8px 14px;
+    margin: 2px 0 0;
+    border-radius: var(--radius-pill);
+    box-sizing: border-box;
   }
   .ssk-nav__actions {
     gap: 8px;
+    align-items: center;
   }
   .ssk-nav__actions .ssk-nav__link {
-    display: none; /* Keep header clean on mobile; avatar/profile handles navigation */
+    display: none;
   }
   .ssk-nav__actions .btn {
     padding: 6px 12px;
     font-size: 0.82rem;
   }
 
-  /* Page Shell & Container */
+  /* Page Shell & Symmetrical Side Margins */
   .ssk-page {
-    padding: 14px 12px 60px;
+    padding: 14px 12px 70px;
     gap: 16px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    width: 100%;
   }
   .ssk-page--with-rail {
     grid-template-columns: 1fr;
@@ -1305,6 +1597,7 @@ select.form-control {
   }
   .ssk-hero__inner {
     padding-bottom: 20px;
+    text-align: center;
   }
   .ssk-hero h1 {
     font-size: 1.35rem;
@@ -1316,9 +1609,14 @@ select.form-control {
   /* Feed & Cards Symmetry */
   .ssk-feed {
     gap: 14px;
+    width: 100%;
   }
   .ssk-card {
     border-radius: var(--radius-md);
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
+    box-sizing: border-box;
   }
   .ssk-card__head {
     padding: 12px 14px 10px;
@@ -1332,25 +1630,27 @@ select.form-control {
     gap: 6px;
   }
   .ssk-tag {
-    font-size: 0.75rem;
+    font-size: 0.76rem;
     padding: 4px 10px;
   }
   .ssk-card__footer {
-    padding: 6px 6px;
+    padding: 4px 4px;
+    grid-template-columns: repeat(3, 1fr);
   }
   .ssk-action {
-    padding: 8px 6px;
-    font-size: 0.8rem;
+    padding: 8px 4px;
+    font-size: 0.78rem;
     min-height: 40px;
+    gap: 4px;
   }
   .ssk-action svg {
-    width: 17px;
-    height: 17px;
+    width: 16px;
+    height: 16px;
   }
 
-  /* Comments on Mobile */
+  /* Comments Symmetrical Mobile */
   .comment-section {
-    padding: 12px;
+    padding: 12px 10px;
   }
   .comment-item {
     padding: 8px 10px;
@@ -1358,21 +1658,23 @@ select.form-control {
   }
   .comment-avatar,
   .comment-avatar-fallback {
-    width: 28px;
-    height: 28px;
-    font-size: 0.75rem;
+    width: 30px;
+    height: 30px;
+    font-size: 0.78rem;
   }
   .comment-text {
-    font-size: 0.85rem;
+    font-size: 0.86rem;
   }
 
   /* Composer / Create Post */
   .ssk-composer {
     padding: 18px 14px;
     border-radius: var(--radius-md);
+    margin: 0 auto;
+    width: 100%;
   }
   .ssk-dropzone {
-    padding: 24px 12px;
+    padding: 22px 12px;
   }
   .ssk-composer__footer {
     flex-direction: column-reverse;
@@ -1381,12 +1683,16 @@ select.form-control {
   .ssk-composer__footer .btn {
     width: 100%;
     text-align: center;
+    justify-content: center;
   }
 
-  /* Profile Card on Mobile */
+  /* Profile Card Symmetrical Mobile Design */
   .ssk-profile-card {
-    padding: 18px 14px;
+    padding: 20px 14px;
     border-radius: var(--radius-md);
+    text-align: center;
+    box-sizing: border-box;
+    width: 100%;
   }
   .ssk-profile-top {
     flex-direction: column;
@@ -1404,32 +1710,44 @@ select.form-control {
   }
   .ssk-profile-details {
     width: 100%;
+    text-align: center;
   }
-  .ssk-profile-top > div:last-child {
-    display: flex;
-    justify-content: center;
-    width: 100%;
+  .ssk-profile-details h1 {
+    font-size: 1.35rem;
+    text-align: center;
   }
-  .ssk-profile-top > div:last-child #btn-toggle-edit-profile {
-    width: 100%;
-    max-width: 260px;
-    justify-content: center;
+  .ssk-profile-handle {
+    text-align: center;
   }
   .ssk-profile-meta {
     justify-content: center;
     font-size: 0.82rem;
   }
+  .ssk-profile-actions {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+  .ssk-profile-actions .btn {
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+  }
   .ssk-profile-bio {
     font-size: 0.88rem;
-    padding: 10px 12px;
-    text-align: left;
+    padding: 12px 14px;
+    text-align: center;
+    border-left: none;
+    border-top: 3px solid var(--ssk-gold);
+    border-radius: var(--radius-sm);
   }
   .ssk-profile-stats {
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
+    padding-top: 14px;
   }
   .ssk-stat-box {
-    padding: 10px 6px;
+    padding: 12px 6px;
   }
   .ssk-stat-number {
     font-size: 1.35rem;
@@ -1451,10 +1769,27 @@ select.form-control {
     align-items: center;
     text-align: center;
   }
+  .ssk-edit-form-actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+  .ssk-edit-form-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Friends Card on Mobile */
+  .ssk-friends-card {
+    padding: 16px 12px;
+    border-radius: var(--radius-md);
+  }
+  .ssk-friends-head {
+    justify-content: space-between;
+  }
 
   /* Search Page on Mobile */
   .ssk-search-head {
-    padding: 16px 14px;
+    padding: 16px 12px;
   }
   .ssk-people-grid {
     grid-template-columns: 1fr !important;
@@ -1465,30 +1800,44 @@ select.form-control {
     grid-template-columns: 1fr;
   }
   .ssk-auth__brand-panel {
-    padding: 32px 20px 24px;
+    padding: 30px 18px 20px;
     text-align: center;
   }
   .ssk-auth__quote {
     display: none;
   }
   .ssk-auth__form-panel {
-    padding: 28px 16px 40px;
+    padding: 24px 16px 36px;
   }
 }
 
 @media (max-width: 420px) {
   .ssk-brand span {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
   }
-  .ssk-action span {
-    font-size: 0.76rem;
+  .ssk-action {
+    font-size: 0.72rem;
+    padding: 8px 2px;
+  }
+  .ssk-action svg {
+    width: 15px;
+    height: 15px;
   }
   .ssk-profile-avatar-wrapper {
     width: 76px;
     height: 76px;
   }
   .ssk-profile-details h1 {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
+  }
+  .ssk-stat-number {
+    font-size: 1.2rem;
+  }
+  .ssk-toast {
+    width: calc(100% - 24px);
+    text-align: center;
+    box-sizing: border-box;
   }
 }
+
 

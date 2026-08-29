@@ -1,14 +1,14 @@
-// ศรีสะเกษ Community — Main Interactive JS (Like, Comment, Share, Toast)
+// ศรีสะเกษ Community — Main Interactive JS (Like, Comment, Share, Toast, Mobile UX)
 (function () {
   "use strict";
 
-  // Helper to read Django CSRF Token (cookie first, then meta tag fallback for Vercel)
+  // Helper to read Django CSRF Token (meta tag, cookie, hidden form input)
   function getCookie(name) {
-    let cookieValue = null;
+    var cookieValue = null;
     if (document.cookie && document.cookie !== "") {
-      const cookies = document.cookie.split(";");
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
+      var cookies = document.cookie.split(";");
+      for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
         if (cookie.substring(0, name.length + 1) === name + "=") {
           cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
           break;
@@ -19,12 +19,17 @@
   }
 
   function getCsrfToken() {
-    // Try cookie first
+    // 1. Meta tag
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.getAttribute("content") && meta.getAttribute("content") !== "{{ csrf_token }}") {
+      return meta.getAttribute("content");
+    }
+    // 2. Cookie
     var fromCookie = getCookie("csrftoken");
     if (fromCookie) return fromCookie;
-    // Fallback: read from meta tag (Vercel serverless)
-    var meta = document.querySelector('meta[name="csrf-token"]');
-    if (meta) return meta.getAttribute("content");
+    // 3. Any hidden CSRF input on the page
+    var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input && input.value) return input.value;
     return "";
   }
 
@@ -37,9 +42,45 @@
     window.clearTimeout(showToast._t);
     showToast._t = window.setTimeout(function () {
       toast.classList.remove("is-visible");
-    }, 2500);
+    }, 2800);
   }
   window.sskToast = showToast;
+
+  function fallbackCopyText(textToCopy) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(textToCopy)
+        .then(function () {
+          showToast("🔗 คัดลอกลิงก์โพสต์เรียบร้อยแล้ว!");
+        })
+        .catch(function () {
+          legacyExecCopy(textToCopy);
+        });
+    } else {
+      legacyExecCopy(textToCopy);
+    }
+  }
+
+  function legacyExecCopy(textToCopy) {
+    try {
+      var textArea = document.createElement("textarea");
+      textArea.value = textToCopy;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      var successful = document.execCommand("copy");
+      document.body.removeChild(textArea);
+      if (successful) {
+        showToast("🔗 คัดลอกลิงก์โพสต์เรียบร้อยแล้ว!");
+      } else {
+        showToast("คัดลอกลิงก์: " + textToCopy);
+      }
+    } catch (err) {
+      showToast("คัดลอกลิงก์: " + textToCopy);
+    }
+  }
 
   // Load comments for a specific post
   function loadComments(postId, listContainer) {
@@ -64,7 +105,7 @@
         listContainer.innerHTML = "";
         data.comments.forEach(function (c) {
           var avatarHtml = c.avatar_url
-            ? '<img src="' + c.avatar_url + '" alt="' + c.author_name + '" class="comment-avatar">'
+            ? '<img src="' + c.avatar_url + '" alt="' + escapeHtml(c.author_name) + '" class="comment-avatar">'
             : '<div class="comment-avatar-fallback">' + (c.avatar_letter || "ศ") + "</div>";
 
           var item = document.createElement("div");
@@ -113,7 +154,7 @@
         var postId = likeBtn.getAttribute("data-post-id");
         if (!postId || postId === "0") {
           likeBtn.classList.toggle("liked");
-          showToast(likeBtn.classList.contains("liked") ? "ถูกใจแล้ว" : "ยกเลิกถูกใจแล้ว");
+          showToast(likeBtn.classList.contains("liked") ? "❤️ ถูกใจโพสต์นี้แล้ว" : "ยกเลิกถูกใจแล้ว");
           return;
         }
 
@@ -128,7 +169,7 @@
         })
           .then(function (res) {
             if (res.status === 401 || res.status === 403) {
-              showToast("กรุณาเข้าสู่ระบบก่อนกดถูกใจ");
+              showToast("🔒 กรุณาเข้าสู่ระบบก่อนกดถูกใจ");
               return null;
             }
             return res.json();
@@ -143,7 +184,9 @@
               showToast("ยกเลิกถูกใจแล้ว");
             }
             var countEl = likeBtn.querySelector(".likes-count");
-            if (countEl) countEl.textContent = data.likes_count;
+            if (countEl && typeof data.likes_count !== "undefined") {
+              countEl.textContent = data.likes_count;
+            }
           })
           .catch(function (err) {
             console.error(err);
@@ -152,7 +195,7 @@
         return;
       }
 
-      // 3. Comment Button Click (Toggle Comment Section)
+      // 3. Comment Button Click (Toggle Comment Drawer)
       var commentBtn = e.target.closest(".comment-btn");
       if (commentBtn) {
         var postId = commentBtn.getAttribute("data-post-id");
@@ -170,7 +213,9 @@
             loadComments(postId, listContainer);
           }
           var textarea = section.querySelector("textarea");
-          if (textarea) textarea.focus();
+          if (textarea) {
+            textarea.focus();
+          }
         }
         return;
       }
@@ -192,7 +237,7 @@
         })
           .then(function (res) {
             if (res.status === 401 || res.status === 403) {
-              showToast("กรุณาเข้าสู่ระบบก่อนเพิ่มเพื่อน");
+              showToast("🔒 กรุณาเข้าสู่ระบบก่อนเพิ่มเพื่อน");
               return null;
             }
             return res.json();
@@ -213,7 +258,7 @@
               });
 
               var friendCountEl = document.getElementById("target-friends-count");
-              if (friendCountEl) {
+              if (friendCountEl && typeof data.friends_count !== "undefined") {
                 friendCountEl.textContent = data.friends_count;
               }
 
@@ -229,32 +274,30 @@
         return;
       }
 
-      // 5. Share Button Click
+      // 5. Share Button Click (Smart Share + Copy Fallback)
       var shareBtn = e.target.closest(".share-btn");
       if (shareBtn) {
         var postId = shareBtn.getAttribute("data-post-id");
         var shareUrl = window.location.origin + (postId && postId !== "0" ? "/feed/#post-" + postId : "/feed/");
         var shareText = shareBtn.getAttribute("data-post-text") || "เรื่องราวดีๆ จากศรีสะเกษ Community";
 
-        if (navigator.share) {
+        if (navigator.share && /mobile|android|iphone|ipad|ipod/i.test(navigator.userAgent)) {
           navigator
             .share({
               title: "ศรีสะเกษ Community",
               text: shareText,
               url: shareUrl,
             })
-            .catch(function () {});
-        } else if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard
-            .writeText(shareUrl)
             .then(function () {
-              showToast("🔗 คัดลอกลิงก์โพสต์เรียบร้อยแล้ว!");
+              showToast("แชร์เรื่องราวเรียบร้อยแล้ว ✨");
             })
-            .catch(function () {
-              showToast("คัดลอกลิงก์: " + shareUrl);
+            .catch(function (err) {
+              if (err && err.name !== "AbortError") {
+                fallbackCopyText(shareUrl);
+              }
             });
         } else {
-          showToast("🔗 ลิงก์โพสต์: " + shareUrl);
+          fallbackCopyText(shareUrl);
         }
         return;
       }
@@ -287,7 +330,7 @@
       })
         .then(function (res) {
           if (res.status === 401 || res.status === 403) {
-            showToast("กรุณาเข้าสู่ระบบก่อนแสดงความคิดเห็น");
+            showToast("🔒 กรุณาเข้าสู่ระบบก่อนแสดงความคิดเห็น");
             return null;
           }
           return res.json();
@@ -299,13 +342,12 @@
             var card = form.closest(".ssk-card");
             var listContainer = card ? card.querySelector(".comments-list") : null;
             if (listContainer) {
-              // Remove empty hint if present
               var emptyHint = listContainer.querySelector(".comment-empty-hint");
               if (emptyHint) emptyHint.remove();
 
               var c = data.comment;
               var avatarHtml = c.avatar_url
-                ? '<img src="' + c.avatar_url + '" alt="' + c.author_name + '" class="comment-avatar">'
+                ? '<img src="' + c.avatar_url + '" alt="' + escapeHtml(c.author_name) + '" class="comment-avatar">'
                 : '<div class="comment-avatar-fallback">' + (c.avatar_letter || "ศ") + "</div>";
 
               var item = document.createElement("div");
@@ -322,10 +364,11 @@
               listContainer.prepend(item);
             }
 
-            // Update comment count button
             if (card) {
               var countEl = card.querySelector(".comment-btn .comments-count");
-              if (countEl) countEl.textContent = data.comments_count;
+              if (countEl && typeof data.comments_count !== "undefined") {
+                countEl.textContent = data.comments_count;
+              }
             }
 
             showToast("💬 โพสต์ความคิดเห็นเรียบร้อยแล้ว!");
@@ -340,4 +383,3 @@
     });
   });
 })();
-
