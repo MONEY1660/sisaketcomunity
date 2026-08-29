@@ -190,6 +190,50 @@ textarea:focus-visible,
 }
 .ssk-nav__link:hover { color: var(--ssk-gold); }
 
+.ssk-nav__logout-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: rgba(251, 241, 228, 0.9);
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(251, 241, 228, 0.25);
+  background: rgba(255, 249, 241, 0.05);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.ssk-nav__logout-btn:hover {
+  background: rgba(216, 85, 30, 0.3);
+  border-color: var(--ssk-brick-light);
+  color: var(--ssk-cream-soft);
+}
+.ssk-nav__logout-btn svg { flex-shrink: 0; }
+
+.ssk-nav__login-btn {
+  font-size: 0.92rem;
+  color: rgba(251, 241, 228, 0.9);
+  padding: 7px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.ssk-nav__login-btn:hover {
+  border-color: rgba(251, 241, 228, 0.3);
+  color: var(--ssk-gold);
+}
+
+.ssk-btn-logout-profile {
+  color: var(--ssk-danger) !important;
+  border-color: rgba(179, 38, 30, 0.35) !important;
+}
+.ssk-btn-logout-profile:hover {
+  background: #FDEDEC !important;
+  border-color: var(--ssk-danger) !important;
+  color: var(--ssk-danger) !important;
+}
+
 .ssk-avatar {
   width: 38px;
   height: 38px;
@@ -825,8 +869,10 @@ textarea.ssk-textarea::placeholder { color: var(--ssk-umber-soft); opacity: 0.7;
   cursor: pointer;
   padding: 8px;
   border-radius: 6px;
+  transition: color 0.15s ease;
 }
-.ssk-input-wrap__toggle:hover { color: var(--ssk-brick); }
+.ssk-input-wrap__toggle:hover,
+.ssk-input-wrap__toggle.is-active { color: var(--ssk-brick); }
 
 .ssk-form-row {
   display: flex;
@@ -1565,15 +1611,28 @@ select.form-control {
     box-sizing: border-box;
   }
   .ssk-nav__actions {
-    gap: 8px;
+    gap: 6px;
     align-items: center;
   }
-  .ssk-nav__actions .ssk-nav__link {
+  .ssk-nav__actions .btn {
+    padding: 6px 10px;
+    font-size: 0.82rem;
+  }
+  .ssk-nav__logout-btn {
+    display: inline-flex;
+    padding: 6px 8px;
+    font-size: 0.8rem;
+    background: rgba(251, 241, 228, 0.12);
+    border-color: rgba(251, 241, 228, 0.25);
+  }
+  .ssk-nav__logout-btn .ssk-nav__logout-text {
     display: none;
   }
-  .ssk-nav__actions .btn {
-    padding: 6px 12px;
+  .ssk-nav__login-btn {
+    display: inline-flex;
     font-size: 0.82rem;
+    padding: 6px 8px;
+    border-color: rgba(251, 241, 228, 0.2);
   }
 
   /* Page Shell & Symmetrical Side Margins */
@@ -1725,13 +1784,18 @@ select.form-control {
   }
   .ssk-profile-actions {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
+    gap: 8px;
     width: 100%;
   }
   .ssk-profile-actions .btn {
-    width: 100%;
-    max-width: 280px;
+    flex: 1 1 calc(50% - 8px);
+    min-width: 125px;
+    max-width: 200px;
     justify-content: center;
+    padding: 8px 10px;
+    font-size: 0.85rem;
   }
   .ssk-profile-bio {
     font-size: 0.88rem;

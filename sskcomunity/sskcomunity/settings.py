@@ -51,8 +51,11 @@ LOGOUT_REDIRECT_URL = 'feed'
 CSRF_TRUSTED_ORIGINS = [
     'https://*.vercel.app',
     'https://*.now.sh',
+    'https://*.app',
     'http://127.0.0.1',
     'http://localhost',
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
 ]
 
 # If you deploy to a custom domain (e.g. sisaketcommunity.com), it will NOT
@@ -71,8 +74,14 @@ CSRF_COOKIE_HTTPONLY = False  # JS must be able to read csrftoken cookie
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = False if DEBUG else True
 
+# Authentication backends (supports username or email login)
+AUTHENTICATION_BACKENDS = [
+    'sskapp.backends.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 WHITENOISE_MANIFEST_STRICT = False
-WHITENOISE_USE_FINDERS = True
+WHITENOISE_USE_FINDERS = False
 
 
 # Application definition
@@ -83,9 +92,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'cloudinary_storage',
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
+    'cloudinary_storage',
     'cloudinary',
     'sskapp',
 ]
@@ -173,8 +182,6 @@ STATIC_URL = '/static/'
 STATIC_ROOT = PROJECT_ROOT / 'staticfiles'
 
 STATICFILES_DIRS = []
-if (PROJECT_ROOT / 'sskapp' / 'static').exists():
-    STATICFILES_DIRS.append(PROJECT_ROOT / 'sskapp' / 'static')
 
 # Cloudinary Configuration
 CLOUDINARY_STORAGE = {

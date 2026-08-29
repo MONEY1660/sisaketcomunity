@@ -605,16 +605,19 @@ def login_view(request):
         return redirect("feed")
 
     error = None
+    next_url = request.GET.get('next') or request.POST.get('next') or 'feed'
+
     if request.method == "POST":
-        username = request.POST.get("username", "").strip()
+        login_input = request.POST.get("username", "").strip()
         password = request.POST.get("password", "")
-        user = authenticate(request, username=username, password=password)
+        
+        user = authenticate(request, username=login_input, password=password)
         if user is not None:
             auth_login(request, user)
-            return redirect("feed")
-        error = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง"
+            return redirect(next_url)
+        error = "ชื่อผู้ใช้/อีเมล หรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง"
 
-    return render(request, "sskapp/login.html", {"error": error})
+    return render(request, "sskapp/login.html", {"error": error, "next": next_url})
 
 
 def register_view(request):

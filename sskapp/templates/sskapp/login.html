@@ -11,7 +11,7 @@
   <div class="ssk-auth__brand">
     <div class="ssk-auth__brand-top">
       <div class="ssk-brand" style="color: var(--ssk-cream-soft);">
-        <span>ศรีสะเกษ Community</span>
+        <span>🌾 ศรีสะเกษ Community</span>
       </div>
       <h1>ยินดีต้อนรับกลับบ้านเฮา</h1>
       <p>เข้าสู่ระบบเพื่อติดตามเรื่องราว รูปภาพ และวิดีโอจากคนศรีสะเกษทั่วทุกอำเภอ</p>
@@ -27,7 +27,7 @@
   <div class="ssk-auth__form-panel">
     <div class="ssk-auth__form">
       <h2>เข้าสู่ระบบ</h2>
-      <p class="ssk-auth__sub">กรอกข้อมูลบัญชีของคุณเพื่อเข้าใช้งาน</p>
+      <p class="ssk-auth__sub">กรอกชื่อผู้ใช้หรืออีเมล และรหัสผ่านเพื่อเข้าใช้งาน</p>
 
       {% if error %}
       <div class="ssk-alert ssk-alert--error" role="alert">
@@ -38,17 +38,21 @@
 
       <form method="post" action="{% url 'login' %}">
         {% csrf_token %}
+        {% if next %}
+          <input type="hidden" name="next" value="{{ next }}">
+        {% endif %}
+        
         <div class="ssk-input-group">
-          <label for="login-username">ชื่อผู้ใช้หรืออีเมล</label>
-          <input class="ssk-input" type="text" id="login-username" name="username" placeholder="เช่น namfon.sisaket" required autocomplete="username">
+          <label for="login-username">ชื่อผู้ใช้ หรือ อีเมล</label>
+          <input class="ssk-input" type="text" id="login-username" name="username" placeholder="เช่น namfon หรือ namfon@example.com" required autocomplete="username">
         </div>
 
         <div class="ssk-input-group">
           <label for="login-password">รหัสผ่าน</label>
           <div class="ssk-input-wrap">
             <input class="ssk-input" type="password" id="login-password" name="password" placeholder="••••••••" required autocomplete="current-password">
-            <button type="button" class="ssk-input-wrap__toggle" data-toggle-password="login-password" aria-label="แสดง/ซ่อนรหัสผ่าน">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+            <button type="button" class="ssk-input-wrap__toggle" data-toggle-password="login-password" aria-label="แสดงรหัสผ่าน" title="แสดง/ซ่อนรหัสผ่าน">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
           </div>
         </div>
@@ -72,5 +76,7 @@
     </div>
   </div>
 </div>
+
+<script src="{% static 'sskapp/js/main.js' %}"></script>
 </body>
 </html>
