@@ -28,7 +28,6 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
           โพสต์เรื่องราว
         </a>
-        <a href="{% url 'profile' %}" class="ssk-nav__link">โปรไฟล์</a>
         <a href="{% url 'logout' %}" class="ssk-nav__link">ออกจากระบบ</a>
         {% if user_avatar_url %}
           <a href="{% url 'profile' %}" class="ssk-avatar" style="padding:0; overflow:hidden;" title="{{ display_name|default:'โปรไฟล์ของฉัน' }}" aria-label="โปรไฟล์ของฉัน">
