@@ -1,0 +1,22 @@
+{% extends "sskapp/base.html" %}
+{% load static %}
+{% block title %}ออกจากระบบ — ศรีสะเกษ Community{% endblock %}
+
+{% block content %}
+<div class="ssk-page">
+  <div class="ssk-confirm">
+    <div class="ssk-confirm__icon" aria-hidden="true">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </div>
+    <h2>ต้องการออกจากระบบใช่หรือไม่?</h2>
+    <p>คุณจะต้องเข้าสู่ระบบใหม่อีกครั้งเพื่อโพสต์หรือแสดงความคิดเห็น</p>
+    <div class="ssk-confirm__actions">
+      <a href="{% url 'feed' %}" class="btn btn--outline">ยกเลิก</a>
+      <form method="post" action="{% url 'logout' %}" style="flex:1;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn--primary btn--full">ออกจากระบบ</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
