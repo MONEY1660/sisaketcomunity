@@ -276,7 +276,7 @@
         return;
       }
 
-      var csrf = getCookie("csrftoken");
+      var csrf = getCsrfToken();
       fetch("/comment/", {
         method: "POST",
         headers: {
