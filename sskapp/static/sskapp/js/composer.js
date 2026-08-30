@@ -17,6 +17,7 @@
 
   // GPS Check-in elements
   var btnGetGps = document.getElementById("btn-get-gps");
+  var btnPickMap = document.getElementById("btn-pick-map");
   var gpsBtnText = document.getElementById("gps-btn-text");
   var postLatInput = document.getElementById("post-latitude");
   var postLngInput = document.getElementById("post-longitude");
@@ -248,6 +249,44 @@
     });
   }
 
+  function openGoogleMapsPicker() {
+    var query = "";
+    if (locationNameInput && locationNameInput.value.trim()) {
+      query = locationNameInput.value.trim();
+    }
+
+    var webUrl = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(query || "ศรีสะเกษ");
+    var ua = navigator.userAgent || "";
+
+    if (window.sskToast) {
+      window.sskToast("กำลังเปิด Google Maps เพื่อเลือกสถานที่…");
+    }
+
+    if (/Android/i.test(ua)) {
+      var androidAppUrl = "googlemaps://?q=" + encodeURIComponent(query || "ศรีสะเกษ") + "&zoom=15";
+      window.location.href = androidAppUrl;
+      setTimeout(function () {
+        window.open(webUrl, "_blank", "noopener,noreferrer");
+      }, 500);
+      return;
+    }
+
+    if (/iPhone|iPad|iPod/i.test(ua)) {
+      var iosAppUrl = "maps://?q=" + encodeURIComponent(query || "ศรีสะเกษ");
+      window.location.href = iosAppUrl;
+      setTimeout(function () {
+        window.open(webUrl, "_blank", "noopener,noreferrer");
+      }, 500);
+      return;
+    }
+
+    window.open(webUrl, "_blank", "noopener,noreferrer");
+  }
+
+  if (btnPickMap) {
+    btnPickMap.addEventListener("click", openGoogleMapsPicker);
+  }
+
   if (btnGetGps) {
     btnGetGps.addEventListener("click", function () {
       if (!navigator.geolocation) {
@@ -287,9 +326,9 @@
 
           var msg = "ไม่สามารถระบุพิกัดได้ กรุณาลองใหม่อีกครั้ง";
           if (err.code === 1) {
-            msg = "คุณปฏิเสธการเข้าถึงตำแหน่ง GPS (กรุณาอนุญาตการเข้าถึง Location ในการตั้งค่าเบราว์เซอร์)";
+            msg = "คุณปฏิเสธการเข้าถึงตำแหน่ง GPS (กรุณาอนุญาตการเข้าถึง Location ในการตั้งค่าเบราว์เซอร์และเปิด GPS/Location บนอุปกรณ์)";
           } else if (err.code === 2) {
-            msg = "ไม่พบสัญญาณตำแหน่งพิกัดจากอุปกรณ์ กรุณาเปิด GPS/Location ในเครื่อง";
+            msg = "ไม่พบสัญญาณตำแหน่งพิกัดจากอุปกรณ์ กรุณาเปิด GPS/Location ในเครื่องก่อนใช้งาน";
           } else if (err.code === 3) {
             msg = "การค้นหาพิกัด GPS ใช้เวลานานเกินไป กรุณากดลองใหม่อีกครั้ง";
           }
