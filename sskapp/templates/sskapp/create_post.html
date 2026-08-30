@@ -2,6 +2,11 @@
 {% load static %}
 {% block title %}โพสต์เรื่องราวใหม่ — ศรีสะเกษ Community{% endblock %}
 
+{% block extra_head %}
+<!-- Leaflet CSS for Map Picker -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+{% endblock %}
+
 {% block content %}
 <div class="ssk-page">
   <form class="ssk-composer" method="post" enctype="multipart/form-data" action="{% url 'create_post' %}" id="ssk-post-form">
@@ -40,6 +45,74 @@
         <div class="ssk-media-preview" id="ssk-media-preview"></div>
       </div>
 
+      <!-- Check-in / Location Picker Section -->
+      <div class="ssk-field ssk-checkin-section">
+        <div class="ssk-checkin-header">
+          <label class="ssk-checkin-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--ssk-brick);"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span>เช็คอินสถานที่ / พิกัด Google Maps</span>
+          </label>
+          <button type="button" class="btn-checkin-gps" id="btn-get-gps" title="ดึงพิกัดจากตำแหน่งปัจจุบันของคุณ">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
+            <span>ดึงตำแหน่งปัจจุบัน (GPS)</span>
+          </button>
+        </div>
+
+        <div class="ssk-checkin-card">
+          <!-- Search & Controls -->
+          <div class="ssk-checkin-search-bar">
+            <div class="ssk-checkin-search-input-wrap">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="map-search-input" placeholder="ค้นหาสถานที่ เช่น ผามออีแดง, วัดสระกำแพงใหญ่..." autocomplete="off">
+              <button type="button" id="btn-search-location" class="btn btn--sm btn--primary">ค้นหา</button>
+            </div>
+          </div>
+
+          <!-- Interactive Map Container -->
+          <div class="ssk-map-container">
+            <div id="ssk-composer-map" class="ssk-map-element" style="height: 240px; width: 100%; border-radius: var(--radius-sm); z-index: 1;"></div>
+            <div class="ssk-map-hint">💡 คลิกหรือลากหมุดบนแผนที่ เพื่อเลือกตำแหน่งสถานที่ได้ทันที</div>
+          </div>
+
+          <!-- Location Name & Details Input -->
+          <div class="ssk-checkin-details">
+            <div class="ssk-field-group">
+              <label for="location-name-input" class="ssk-sublabel">ชื่อสถานที่ / ข้อความเช็คอิน</label>
+              <input type="text" id="location-name-input" name="location_name" class="ssk-input" placeholder="เช่น สวนทุเรียนภูเขาไฟ, ผามออีแดง, อ.กันทรลักษ์">
+            </div>
+
+            <!-- Landmark suggestions -->
+            <div class="ssk-location-suggestions">
+              <span class="ssk-suggestion-label">สถานที่แนะนำ:</span>
+              <button type="button" class="ssk-loc-chip" data-name="ผามออีแดง อุทยานแห่งชาติเขาพระวิหาร" data-lat="14.3986" data-lng="104.7082">ผามออีแดง</button>
+              <button type="button" class="ssk-loc-chip" data-name="สวนสมเด็จพระศรีนครินทร์ ศรีสะเกษ" data-lat="15.1054" data-lng="104.3092">สวนสมเด็จฯ</button>
+              <button type="button" class="ssk-loc-chip" data-name="ปราสาทหินสระกำแพงใหญ่" data-lat="15.1009" data-lng="104.1278">ปราสาทสระกำแพงใหญ่</button>
+              <button type="button" class="ssk-loc-chip" data-name="วัดป่ามหาเจดีย์แก้ว (วัดล้านขวด)" data-lat="14.6190" data-lng="104.4258">วัดล้านขวด</button>
+              <button type="button" class="ssk-loc-chip" data-name="เกาะกลางน้ำ ศรีสะเกษ" data-lat="15.1182" data-lng="104.3314">เกาะกลางน้ำ</button>
+            </div>
+
+            <!-- Hidden Lat/Lng fields -->
+            <input type="hidden" id="post-latitude" name="latitude">
+            <input type="hidden" id="post-longitude" name="longitude">
+
+            <!-- Check-in status bar -->
+            <div class="ssk-checkin-status" id="ssk-checkin-status" style="display: none;">
+              <div class="ssk-checkin-status-info">
+                <span class="ssk-status-badge">📍 ปักหมุดแล้ว:</span>
+                <span id="coords-display" class="coords-text">--</span>
+              </div>
+              <div class="ssk-checkin-status-actions">
+                <a href="#" id="preview-gmaps-link" target="_blank" rel="noopener noreferrer" class="btn-gmaps-preview" title="เปิดดูบน Google Maps">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  <span>ดูใน Google Maps</span>
+                </a>
+                <button type="button" id="btn-clear-checkin" class="btn-clear-loc" title="ล้างตำแหน่งเช็คอิน">✕ ล้างตำแหน่ง</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="ssk-field">
         <label for="tag-input-field">แท็ก</label>
         <div class="ssk-tag-input" id="ssk-tag-input">
@@ -65,5 +138,7 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<!-- Leaflet JS for Map Picker -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="{% static 'sskapp/js/composer.js' %}"></script>
 {% endblock %}

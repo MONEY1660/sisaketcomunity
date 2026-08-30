@@ -42,6 +42,10 @@ SAMPLE_POSTS = [
         "author_username": "namfon",
         "author_avatar": None,
         "location": "อ.กันทรลักษ์",
+        "location_name": "สวนทุเรียนภูเขาไฟ ลำดวน",
+        "latitude": 14.6468,
+        "longitude": 104.6508,
+        "google_maps_url": "https://www.google.com/maps?q=14.6468,104.6508",
         "time_ago": "2 ชั่วโมงที่แล้ว",
         "text": "เช้านี้ไปเก็บทุเรียนภูเขาไฟที่สวนตากับพ่อ ปีนี้ลูกดกมาก หอมไปทั้งสวนเลยค่ะ 🌾",
         "media": None,
@@ -58,6 +62,10 @@ SAMPLE_POSTS = [
         "author_username": "tripssk",
         "author_avatar": None,
         "location": "อ.กันทรลักษ์",
+        "location_name": "ผามออีแดง อุทยานแห่งชาติเขาพระวิหาร",
+        "latitude": 14.3986,
+        "longitude": 104.7082,
+        "google_maps_url": "https://www.google.com/maps?q=14.3986,104.7082",
         "time_ago": "5 ชั่วโมงที่แล้ว",
         "text": "วิวพระอาทิตย์ขึ้นที่ผามออีแดง มองเห็นปราสาทเขาพระวิหารชัดมาก ใครไปช่วงนี้บอกเลยว่าคุ้มตื่นเช้าสุด ๆ",
         "media": None,
@@ -113,6 +121,52 @@ def _auth_context(request):
     }
 
 
+def _serialize_post(p, current_user=None):
+    display_author = p.author.first_name or p.author.username
+    avatar_url = None
+    user_location = "ศรีสะเกษ"
+    if hasattr(p.author, 'userprofile') and p.author.userprofile:
+        if p.author.userprofile.avatar:
+            try:
+                avatar_url = p.author.userprofile.avatar.url
+            except Exception:
+                avatar_url = None
+        if p.author.userprofile.location:
+            user_location = p.author.userprofile.location
+
+    is_liked = False
+    if current_user and current_user.is_authenticated:
+        is_liked = p.likes.filter(user=current_user).exists()
+
+    likes_count = getattr(p, 'likes_count', None)
+    if likes_count is None:
+        likes_count = p.likes.count()
+
+    comments_count = getattr(p, 'comments_count', None)
+    if comments_count is None:
+        comments_count = p.comments.count()
+
+    return {
+        "post_id": p.id,
+        "author": display_author,
+        "author_username": p.author.username,
+        "author_avatar": avatar_url,
+        "location": user_location,
+        "location_name": p.location_name,
+        "latitude": float(p.latitude) if p.latitude is not None else None,
+        "longitude": float(p.longitude) if p.longitude is not None else None,
+        "google_maps_url": p.google_maps_url,
+        "time_ago": p.created_at.strftime("%d/%m/%Y %H:%M"),
+        "text": p.text,
+        "media": p.media,
+        "is_video": p.is_video,
+        "tags": [t.name for t in p.tags.all()],
+        "likes": likes_count,
+        "comments": comments_count,
+        "is_liked": is_liked,
+    }
+
+
 def index(request):
     return redirect("feed")
 
@@ -131,40 +185,7 @@ def feed(request):
 
     posts_qs = posts_qs.order_by('-created_at')
 
-    posts_data = []
-    for p in posts_qs:
-        display_author = p.author.first_name or p.author.username
-        
-        avatar_url = None
-        user_location = "ศรีสะเกษ"
-        if hasattr(p.author, 'userprofile') and p.author.userprofile:
-            if p.author.userprofile.avatar:
-                try:
-                    avatar_url = p.author.userprofile.avatar.url
-                except Exception:
-                    avatar_url = None
-            if p.author.userprofile.location:
-                user_location = p.author.userprofile.location
-
-        is_liked = False
-        if request.user.is_authenticated:
-            is_liked = p.likes.filter(user=request.user).exists()
-
-        posts_data.append({
-            "post_id": p.id,
-            "author": display_author,
-            "author_username": p.author.username,
-            "author_avatar": avatar_url,
-            "location": user_location,
-            "time_ago": p.created_at.strftime("%d/%m/%Y %H:%M"),
-            "text": p.text,
-            "media": p.media,
-            "is_video": p.is_video,
-            "tags": [t.name for t in p.tags.all()],
-            "likes": p.likes_count,
-            "comments": p.comments_count,
-            "is_liked": is_liked,
-        })
+    posts_data = [_serialize_post(p, request.user) for p in posts_qs]
 
     display_posts = posts_data if (posts_data or tag_filter) else SAMPLE_POSTS
 
@@ -186,12 +207,28 @@ def create_post(request):
         text = request.POST.get("text", "").strip()
         media_file = request.FILES.get("media")
         tags_raw = request.POST.get("tags", "")
+        location_name = request.POST.get("location_name", "").strip()
+        latitude_raw = request.POST.get("latitude", "").strip()
+        longitude_raw = request.POST.get("longitude", "").strip()
 
-        if text or media_file:
+        latitude = None
+        longitude = None
+        if latitude_raw and longitude_raw:
+            try:
+                latitude = float(latitude_raw)
+                longitude = float(longitude_raw)
+            except (ValueError, TypeError):
+                latitude = None
+                longitude = None
+
+        if text or media_file or location_name:
             post = Post.objects.create(
                 author=request.user,
                 text=text,
                 media=media_file,
+                location_name=location_name or None,
+                latitude=latitude,
+                longitude=longitude,
             )
             if tags_raw:
                 try:
@@ -379,23 +416,7 @@ def profile(request):
     total_likes = sum(p.likes_count for p in user_posts_qs)
     total_comments = sum(p.comments_count for p in user_posts_qs)
 
-    user_posts_data = []
-    for p in user_posts_qs:
-        user_posts_data.append({
-            "post_id": p.id,
-            "author": request.user.first_name or request.user.username,
-            "author_username": request.user.username,
-            "author_avatar": user_prof.avatar.url if user_prof.avatar else None,
-            "location": user_prof.location or "ศรีสะเกษ",
-            "time_ago": p.created_at.strftime("%d/%m/%Y %H:%M"),
-            "text": p.text,
-            "media": p.media,
-            "is_video": p.is_video,
-            "tags": [t.name for t in p.tags.all()],
-            "likes": p.likes_count,
-            "comments": p.comments_count,
-            "is_liked": p.likes.filter(user=request.user).exists(),
-        })
+    user_posts_data = [_serialize_post(p, request.user) for p in user_posts_qs]
 
     # Get list of friends (users that the current user has added)
     friendships = Friendship.objects.filter(user=request.user).select_related('friend', 'friend__userprofile')
@@ -460,23 +481,7 @@ def user_profile_view(request, username):
         except Exception:
             avatar_url = None
 
-    user_posts_data = []
-    for p in user_posts_qs:
-        user_posts_data.append({
-            "post_id": p.id,
-            "author": target_user.first_name or target_user.username,
-            "author_username": target_user.username,
-            "author_avatar": avatar_url,
-            "location": user_prof.location or "ศรีสะเกษ",
-            "time_ago": p.created_at.strftime("%d/%m/%Y %H:%M"),
-            "text": p.text,
-            "media": p.media,
-            "is_video": p.is_video,
-            "tags": [t.name for t in p.tags.all()],
-            "likes": p.likes_count,
-            "comments": p.comments_count,
-            "is_liked": p.likes.filter(user=request.user).exists() if request.user.is_authenticated else False,
-        })
+    user_posts_data = [_serialize_post(p, request.user) for p in user_posts_qs]
 
     # Target user's friends count
     friends_count = Friendship.objects.filter(friend=target_user).count()
@@ -508,46 +513,15 @@ def search_view(request):
     tags_results = []
 
     if query:
-        # 1. Search Posts
+        # 1. Search Posts (including location name)
         matching_posts = Post.objects.filter(
-            Q(text__icontains=query) | Q(tags__name__icontains=tag_query)
+            Q(text__icontains=query) | Q(tags__name__icontains=tag_query) | Q(location_name__icontains=query)
         ).distinct().order_by('-created_at').select_related('author', 'author__userprofile').prefetch_related('tags', 'likes', 'comments').annotate(
             likes_count=Count('likes', distinct=True),
             comments_count=Count('comments', distinct=True)
         )
 
-        for p in matching_posts:
-            display_author = p.author.first_name or p.author.username
-            avatar_url = None
-            user_location = "ศรีสะเกษ"
-            if hasattr(p.author, 'userprofile') and p.author.userprofile:
-                if p.author.userprofile.avatar:
-                    try:
-                        avatar_url = p.author.userprofile.avatar.url
-                    except Exception:
-                        avatar_url = None
-                if p.author.userprofile.location:
-                    user_location = p.author.userprofile.location
-
-            is_liked = False
-            if request.user.is_authenticated:
-                is_liked = p.likes.filter(user=request.user).exists()
-
-            posts_results.append({
-                "post_id": p.id,
-                "author": display_author,
-                "author_username": p.author.username,
-                "author_avatar": avatar_url,
-                "location": user_location,
-                "time_ago": p.created_at.strftime("%d/%m/%Y %H:%M"),
-                "text": p.text,
-                "media": p.media,
-                "is_video": p.is_video,
-                "tags": [t.name for t in p.tags.all()],
-                "likes": p.likes_count,
-                "comments": p.comments_count,
-                "is_liked": is_liked,
-            })
+        posts_results = [_serialize_post(p, request.user) for p in matching_posts]
 
         # 2. Search People
         matching_users = User.objects.filter(

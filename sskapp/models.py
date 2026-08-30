@@ -13,6 +13,9 @@ class Post(models.Model):
     text = models.TextField()
     media = models.FileField(upload_to='post_media/', blank=True, null=True)
     tags = models.ManyToManyField(Tag, blank=True)
+    location_name = models.CharField(max_length=255, blank=True, null=True)
+    latitude = models.DecimalField(max_digits=10, decimal_places=7, blank=True, null=True)
+    longitude = models.DecimalField(max_digits=10, decimal_places=7, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -22,6 +25,15 @@ class Post(models.Model):
             ext = self.media.name.lower().split('.')[-1]
             return ext in ['mp4', 'mov', 'webm', 'ogg', 'mkv', 'avi']
         return False
+
+    @property
+    def google_maps_url(self):
+        if self.latitude is not None and self.longitude is not None:
+            return f"https://www.google.com/maps?q={self.latitude},{self.longitude}"
+        if self.location_name:
+            import urllib.parse
+            return f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(self.location_name)}"
+        return None
 
     def __str__(self):
         return f"{self.author.username}: {self.text[:30]}"
