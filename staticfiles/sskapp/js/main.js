@@ -1,4 +1,4 @@
-// ศรีสะเกษ Community — Main Interactive JS (Like, Comment, Share, Toast, Mobile UX)
+// ศรีสะเกษ Community — Main Interactive JS (Like, Comment, Share, Dropdown Menu, Delete Post, Toast, Mobile UX)
 (function () {
   "use strict";
 
@@ -135,22 +135,132 @@
     return div.innerHTML;
   }
 
-  // Event Delegation for Clicks & Submissions
-  document.addEventListener("DOMContentLoaded", function () {
-    // 1. Password Toggle
+  // Close all open menus
+  function closeAllMenus() {
+    document.querySelectorAll(".ssk-card__menu-dropdown.is-open").forEach(function (d) {
+      d.classList.remove("is-open");
+    });
+  }
+
+  function init() {
+    // 1. Unified Click Handler (Event Delegation)
     document.addEventListener("click", function (e) {
-      var toggle = e.target.closest("[data-toggle-password]");
-      if (toggle) {
-        var input = document.getElementById(toggle.getAttribute("data-toggle-password"));
-        if (input) {
-          input.type = input.type === "password" ? "text" : "password";
+      // --- 1A. Three Dots Menu Toggle ---
+      var menuBtn = e.target.closest(".ssk-card__menu-btn");
+      if (menuBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        var currentDropdown = menuBtn.nextElementSibling;
+        var isOpen = currentDropdown && currentDropdown.classList.contains("is-open");
+
+        closeAllMenus();
+
+        if (!isOpen && currentDropdown) {
+          currentDropdown.classList.add("is-open");
         }
         return;
       }
 
-      // 2. Like Button Click
+      // Close all menus if clicked anywhere outside a menu dropdown
+      if (!e.target.closest(".ssk-card__actions-dropdown")) {
+        closeAllMenus();
+      }
+
+      // --- 1B. Delete Post Action ---
+      var deleteBtn = e.target.closest(".btn-delete-post");
+      if (deleteBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeAllMenus();
+
+        var postId = deleteBtn.getAttribute("data-post-id");
+        if (!postId) return;
+
+        var confirmed = window.confirm("คุณแน่ใจหรือไม่ว่าต้องการลบเรื่องราวนี้?\n(เมื่อลบแล้วจะไม่สามารถกู้คืนได้)");
+        if (!confirmed) return;
+
+        deleteBtn.disabled = true;
+        var originalText = deleteBtn.innerHTML;
+        deleteBtn.innerHTML = "<span>กำลังลบ…</span>";
+
+        fetch("/post/" + postId + "/delete/", {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": getCsrfToken(),
+            "X-Requested-With": "XMLHttpRequest",
+            "Accept": "application/json"
+          }
+        })
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (data) {
+          if (data.success) {
+            showToast("ลบเรื่องราวเรียบร้อยแล้ว 🗑️");
+            var card = document.getElementById("post-" + postId) || deleteBtn.closest(".ssk-card");
+            if (card) {
+              card.style.transition = "opacity 0.3s ease, transform 0.3s ease, max-height 0.4s ease, margin 0.4s ease, padding 0.4s ease";
+              card.style.opacity = "0";
+              card.style.transform = "scale(0.96)";
+              card.style.maxHeight = card.offsetHeight + "px";
+              window.setTimeout(function () {
+                card.style.maxHeight = "0";
+                card.style.marginTop = "0";
+                card.style.marginBottom = "0";
+                card.style.paddingTop = "0";
+                card.style.paddingBottom = "0";
+                card.style.overflow = "hidden";
+                window.setTimeout(function () {
+                  card.remove();
+                }, 400);
+              }, 300);
+            }
+          } else {
+            alert(data.error || "ไม่สามารถลบโพสต์ได้ กรุณาลองใหม่อีกครั้ง");
+            deleteBtn.disabled = false;
+            deleteBtn.innerHTML = originalText;
+          }
+        })
+        .catch(function (err) {
+          console.error(err);
+          alert("เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง");
+          deleteBtn.disabled = false;
+          deleteBtn.innerHTML = originalText;
+        });
+        return;
+      }
+
+      // --- 1C. Password Visibility Toggle ---
+      var toggleBtn = e.target.closest("[data-toggle-password]");
+      if (toggleBtn) {
+        e.preventDefault();
+        var targetId = toggleBtn.getAttribute("data-toggle-password");
+        var input = document.getElementById(targetId);
+        if (!input) return;
+
+        var isPassword = input.type === "password";
+        input.type = isPassword ? "text" : "password";
+
+        if (isPassword) {
+          toggleBtn.setAttribute("aria-label", "ซ่อนรหัสผ่าน");
+          toggleBtn.setAttribute("title", "ซ่อนรหัสผ่าน");
+          toggleBtn.classList.add("is-active");
+          toggleBtn.innerHTML =
+            '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+        } else {
+          toggleBtn.setAttribute("aria-label", "แสดงรหัสผ่าน");
+          toggleBtn.setAttribute("title", "แสดงรหัสผ่าน");
+          toggleBtn.classList.remove("is-active");
+          toggleBtn.innerHTML =
+            '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>';
+        }
+        return;
+      }
+
+      // --- 1D. Like Button Click ---
       var likeBtn = e.target.closest(".like-btn");
       if (likeBtn) {
+        e.preventDefault();
         var postId = likeBtn.getAttribute("data-post-id");
         if (!postId || postId === "0") {
           likeBtn.classList.toggle("liked");
@@ -195,9 +305,10 @@
         return;
       }
 
-      // 3. Comment Button Click (Toggle Comment Drawer)
+      // --- 1E. Comment Button Click (Toggle Comment Drawer) ---
       var commentBtn = e.target.closest(".comment-btn");
       if (commentBtn) {
+        e.preventDefault();
         var postId = commentBtn.getAttribute("data-post-id");
         var card = commentBtn.closest(".ssk-card");
         if (!card) return;
@@ -220,9 +331,10 @@
         return;
       }
 
-      // 4. Friend Button Click (Add / Remove Friend)
+      // --- 1F. Friend Button Click (Add / Remove Friend) ---
       var friendBtn = e.target.closest(".friend-btn");
       if (friendBtn) {
+        e.preventDefault();
         var username = friendBtn.getAttribute("data-username");
         if (!username) return;
 
@@ -274,9 +386,10 @@
         return;
       }
 
-      // 5. Share Button Click (Smart Share + Copy Fallback)
+      // --- 1G. Share Button Click (Smart Share + Copy Fallback) ---
       var shareBtn = e.target.closest(".share-btn");
       if (shareBtn) {
+        e.preventDefault();
         var postId = shareBtn.getAttribute("data-post-id");
         var shareUrl = window.location.origin + (postId && postId !== "0" ? "/feed/#post-" + postId : "/feed/");
         var shareText = shareBtn.getAttribute("data-post-text") || "เรื่องราวดีๆ จากศรีสะเกษ Community";
@@ -303,7 +416,7 @@
       }
     });
 
-    // 6. Comment Form Submission
+    // 2. Comment Form Submission
     document.addEventListener("submit", function (e) {
       var form = e.target.closest(".comment-form");
       if (!form) return;
@@ -382,32 +495,18 @@
         });
     });
 
-    // 7. Toggle Password Visibility
-    document.addEventListener("click", function (e) {
-      var toggleBtn = e.target.closest("[data-toggle-password]");
-      if (!toggleBtn) return;
-      e.preventDefault();
-
-      var targetId = toggleBtn.getAttribute("data-toggle-password");
-      var input = document.getElementById(targetId);
-      if (!input) return;
-
-      var isPassword = input.type === "password";
-      input.type = isPassword ? "text" : "password";
-
-      if (isPassword) {
-        toggleBtn.setAttribute("aria-label", "ซ่อนรหัสผ่าน");
-        toggleBtn.setAttribute("title", "ซ่อนรหัสผ่าน");
-        toggleBtn.classList.add("is-active");
-        toggleBtn.innerHTML =
-          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
-      } else {
-        toggleBtn.setAttribute("aria-label", "แสดงรหัสผ่าน");
-        toggleBtn.setAttribute("title", "แสดงรหัสผ่าน");
-        toggleBtn.classList.remove("is-active");
-        toggleBtn.innerHTML =
-          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>';
+    // 3. Close Dropdown on Escape Key
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        closeAllMenus();
       }
     });
-  });
+  }
+
+  // Safe DOM ready execution
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 })();

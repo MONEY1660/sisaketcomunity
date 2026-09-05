@@ -2418,3 +2418,512 @@ select.form-control {
   opacity: 1;
   transform: translate(1px, -1px);
 }
+
+/* ============================================================
+   Composer: GPS Check-in & Google Maps Location Selector
+   ============================================================ */
+.ssk-checkin-section {
+  margin-top: 4px;
+}
+
+.ssk-checkin-label {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--ssk-umber);
+  margin-bottom: 8px;
+}
+
+.ssk-gps-box {
+  background: var(--ssk-cream-soft, #FAF6F0);
+  border: 1px solid var(--ssk-line, #EADBCE);
+  border-radius: var(--radius-md, 12px);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ssk-gps-box:hover {
+  border-color: rgba(216, 85, 30, 0.35);
+}
+
+.ssk-gps-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.ssk-gps-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--ssk-brick, #D8551E);
+  color: #ffffff !important;
+  border: 1px solid var(--ssk-brick, #D8551E);
+}
+
+.ssk-gps-trigger-btn:hover:not(:disabled) {
+  background: var(--ssk-brick-dark, #B44212);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(216, 85, 30, 0.25);
+}
+
+.ssk-gps-trigger-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.ssk-gmaps-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  background: var(--ssk-white, #ffffff);
+  border: 1px solid var(--ssk-line, #EADBCE);
+  color: var(--ssk-umber, #3A2A1E);
+  transition: all 0.2s ease;
+}
+
+.ssk-gmaps-btn:hover:not(:disabled) {
+  border-color: var(--ssk-brick, #D8551E);
+  color: var(--ssk-brick, #D8551E);
+  background: #FFF9F5;
+  transform: translateY(-1px);
+}
+
+.ssk-gps-result {
+  background: #F4EFEA;
+  border: 1px solid #DFD3C6;
+  border-radius: 10px;
+  padding: 12px 14px;
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ssk-gps-result__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ssk-gps-result__title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ssk-badge-success {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #2E7D32;
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill, 999px);
+}
+
+.ssk-coords-text {
+  font-size: 0.84rem;
+  color: var(--ssk-umber-soft, #6B5749);
+  font-family: monospace;
+}
+
+.btn-clear-gps {
+  border: none;
+  background: transparent;
+  color: #C62828;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.btn-clear-gps:hover {
+  background: rgba(198, 40, 40, 0.08);
+  text-decoration: underline;
+}
+
+.ssk-gps-result__footer {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(58, 42, 30, 0.12);
+}
+
+.btn-gmaps-preview-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ssk-brick, #D8551E);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.btn-gmaps-preview-card:hover {
+  color: var(--ssk-brick-dark, #B44212);
+  text-decoration: underline;
+}
+
+.ssk-location-inputs-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 600px) {
+  .ssk-location-inputs-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.ssk-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ssk-sublabel {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--ssk-umber, #3A2A1E);
+  margin-bottom: 2px;
+}
+
+.ssk-url-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ssk-url-input-wrap .ssk-input {
+  padding-right: 36px;
+}
+
+.ssk-url-open-link {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ssk-brick, #D8551E);
+  background: rgba(216, 85, 30, 0.1);
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.ssk-url-open-link:hover {
+  background: var(--ssk-brick, #D8551E);
+  color: #ffffff;
+}
+
+.ssk-input-hint {
+  font-size: 0.74rem;
+  color: var(--ssk-umber-soft, #6B5749);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+/* ============================================================
+   Post Card: Actions Menu (Edit / Delete Dropdown)
+   ============================================================ */
+.ssk-card__actions-dropdown {
+  position: relative;
+  margin-left: auto;
+  align-self: flex-start;
+}
+
+.ssk-card__menu-btn {
+  border: none;
+  background: transparent;
+  color: var(--ssk-umber-soft, #6B5749);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ssk-card__menu-btn:hover {
+  background: rgba(58, 42, 30, 0.08);
+  color: var(--ssk-umber, #3A2A1E);
+}
+
+.ssk-card__menu-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  min-width: 155px;
+  background: #ffffff;
+  border: 1px solid var(--ssk-line, #EADBCE);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(58, 42, 30, 0.15);
+  padding: 6px;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 100;
+  animation: sskDropFade 0.18s ease-out;
+}
+
+.ssk-card__menu-dropdown.is-open {
+  display: flex;
+}
+
+@keyframes sskDropFade {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ssk-card__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  font-size: 0.86rem;
+  color: var(--ssk-umber, #3A2A1E);
+  text-decoration: none;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.ssk-card__menu-item:hover {
+  background: var(--ssk-cream-soft, #FAF6F0);
+  color: var(--ssk-brick, #D8551E);
+}
+
+.ssk-card__menu-item--danger {
+  color: #D32F2F;
+}
+
+.ssk-card__menu-item--danger:hover {
+  background: #FFEBEE;
+  color: #C62828;
+}
+
+/* ============================================================
+   Edit Post: Existing Media Preview & Removal
+   ============================================================ */
+.ssk-existing-media {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 14px;
+  background: var(--ssk-cream-soft, #FAF6F0);
+  border: 1px solid var(--ssk-line, #EADBCE);
+  border-radius: var(--radius-md, 12px);
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.ssk-existing-media__preview {
+  position: relative;
+  display: inline-flex;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: #000000;
+}
+
+.ssk-existing-media__info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ssk-existing-media__badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--ssk-umber, #3A2A1E);
+  background: rgba(216, 85, 30, 0.12);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill, 999px);
+  width: fit-content;
+}
+
+.ssk-remove-media-label {
+  cursor: pointer;
+  font-size: 0.86rem;
+  color: #C62828;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ssk-remove-media-label input[type="checkbox"] {
+  accent-color: #D32F2F;
+  width: 16px;
+  height: 16px;
+}
+
+/* ============================================================
+   Post Card: Three Dots Action Menu Dropdown
+   ============================================================ */
+.ssk-card__actions-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.ssk-card__menu-btn {
+  border: none;
+  background: transparent;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ssk-text-muted, #7c7267);
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.18s ease, color 0.18s ease, transform 0.15s ease;
+}
+
+.ssk-card__menu-btn:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+  color: var(--ssk-text, #2c2520);
+}
+
+.ssk-card__menu-btn:active {
+  transform: scale(0.92);
+}
+
+.ssk-card__menu-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 165px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08), 0 0 1px 1px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--ssk-border, #e6ded5);
+  z-index: 1050;
+  padding: 6px;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  transform-origin: top right;
+}
+
+.ssk-card__menu-dropdown.is-open {
+  display: flex !important;
+  animation: sskMenuPop 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes sskMenuPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(-6px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.ssk-card__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--ssk-text, #2c2520);
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.ssk-card__menu-item:hover {
+  background-color: rgba(216, 85, 30, 0.08);
+  color: var(--ssk-terracotta, #D8551E);
+}
+
+.ssk-card__menu-item svg {
+  flex-shrink: 0;
+  color: currentColor;
+}
+
+.ssk-card__menu-item--danger {
+  color: #C62828 !important;
+}
+
+.ssk-card__menu-item--danger:hover {
+  background-color: #FFEBEE !important;
+  color: #B71C1C !important;
+}
+
+/* Dark mode support */
+[data-theme="dark"] .ssk-card__menu-dropdown {
+  background: #26211C;
+  border-color: #4A3E34;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .ssk-card__menu-btn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #FFF;
+}
+
+[data-theme="dark"] .ssk-card__menu-item {
+  color: #E8DFD8;
+}
+
+[data-theme="dark"] .ssk-card__menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #FF8A50;
+}
+
+[data-theme="dark"] .ssk-card__menu-item--danger:hover {
+  background-color: rgba(239, 83, 80, 0.18) !important;
+  color: #EF5350 !important;
+}
+
+
+

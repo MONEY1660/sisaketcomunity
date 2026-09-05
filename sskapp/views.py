@@ -2,7 +2,7 @@ import json
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render, get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.contrib.auth.decorators import login_required
@@ -146,6 +146,9 @@ def _serialize_post(p, current_user=None):
     if comments_count is None:
         comments_count = p.comments.count()
 
+    can_edit = bool(current_user and current_user.is_authenticated and (current_user == p.author or current_user.is_staff))
+    is_author = bool(current_user and current_user.is_authenticated and current_user == p.author)
+
     return {
         "post_id": p.id,
         "author": display_author,
@@ -153,6 +156,7 @@ def _serialize_post(p, current_user=None):
         "author_avatar": avatar_url,
         "location": user_location,
         "location_name": p.location_name,
+        "location_url": p.location_url,
         "latitude": float(p.latitude) if p.latitude is not None else None,
         "longitude": float(p.longitude) if p.longitude is not None else None,
         "google_maps_url": p.google_maps_url,
@@ -164,6 +168,8 @@ def _serialize_post(p, current_user=None):
         "likes": likes_count,
         "comments": comments_count,
         "is_liked": is_liked,
+        "can_edit": can_edit,
+        "is_author": is_author,
     }
 
 
@@ -208,6 +214,7 @@ def create_post(request):
         media_file = request.FILES.get("media")
         tags_raw = request.POST.get("tags", "")
         location_name = request.POST.get("location_name", "").strip()
+        location_url = request.POST.get("location_url", "").strip()
         latitude_raw = request.POST.get("latitude", "").strip()
         longitude_raw = request.POST.get("longitude", "").strip()
 
@@ -221,12 +228,13 @@ def create_post(request):
                 latitude = None
                 longitude = None
 
-        if text or media_file or location_name:
+        if text or media_file or location_name or location_url:
             post = Post.objects.create(
                 author=request.user,
                 text=text,
                 media=media_file,
                 location_name=location_name or None,
+                location_url=location_url or None,
                 latitude=latitude,
                 longitude=longitude,
             )
@@ -247,6 +255,112 @@ def create_post(request):
 
     context = _auth_context(request)
     return render(request, "sskapp/create_post.html", context)
+
+
+def edit_post(request, post_id):
+    if not request.user.is_authenticated:
+        return redirect("login")
+
+    post = get_object_or_404(Post, id=post_id)
+    if post.author != request.user and not request.user.is_staff:
+        return HttpResponseForbidden("คุณไม่มีสิทธิ์แก้ไขโพสต์นี้")
+
+    if request.method == "POST":
+        text = request.POST.get("text", "").strip()
+        media_file = request.FILES.get("media")
+        remove_media = request.POST.get("remove_media") == "1"
+        tags_raw = request.POST.get("tags", "")
+        location_name = request.POST.get("location_name", "").strip()
+        location_url = request.POST.get("location_url", "").strip()
+        latitude_raw = request.POST.get("latitude", "").strip()
+        longitude_raw = request.POST.get("longitude", "").strip()
+
+        latitude = None
+        longitude = None
+        if latitude_raw and longitude_raw:
+            try:
+                latitude = float(latitude_raw)
+                longitude = float(longitude_raw)
+            except (ValueError, TypeError):
+                latitude = None
+                longitude = None
+
+        post.text = text
+        if media_file:
+            post.media = media_file
+        elif remove_media and post.media:
+            post.media.delete(save=False)
+            post.media = None
+
+        post.location_name = location_name or None
+        post.location_url = location_url or None
+        post.latitude = latitude
+        post.longitude = longitude
+        post.save()
+
+        # Update tags
+        post.tags.clear()
+        if tags_raw:
+            try:
+                tag_list = json.loads(tags_raw)
+                if not isinstance(tag_list, list):
+                    tag_list = [t.strip() for t in tags_raw.split(",") if t.strip()]
+            except Exception:
+                tag_list = [t.strip() for t in tags_raw.split(",") if t.strip()]
+
+            for tag_name in tag_list:
+                tag_name = tag_name.strip().lstrip('#')
+                if tag_name:
+                    tag_obj, _ = Tag.objects.get_or_create(name=tag_name)
+                    post.tags.add(tag_obj)
+
+        messages.success(request, "แก้ไขโพสต์เรียบร้อยแล้ว")
+        return redirect("feed")
+
+    context = _auth_context(request)
+    existing_tags = [t.name for t in post.tags.all()]
+    context.update({
+        "post": post,
+        "existing_tags": existing_tags,
+        "existing_tags_json": json.dumps(existing_tags, ensure_ascii=False),
+        "latitude_val": float(post.latitude) if post.latitude is not None else "",
+        "longitude_val": float(post.longitude) if post.longitude is not None else "",
+    })
+    return render(request, "sskapp/edit_post.html", context)
+
+
+def delete_post(request, post_id):
+    if not request.user.is_authenticated:
+        if request.headers.get("x-requested-with") == "XMLHttpRequest" or "application/json" in request.headers.get("Accept", ""):
+            return JsonResponse({"error": "กรุณาเข้าสู่ระบบก่อนดำเนินการ", "authenticated": False}, status=401)
+        return redirect("login")
+
+    post = get_object_or_404(Post, id=post_id)
+    if post.author != request.user and not request.user.is_staff:
+        if request.headers.get("x-requested-with") == "XMLHttpRequest" or "application/json" in request.headers.get("Accept", ""):
+            return JsonResponse({"error": "คุณไม่มีสิทธิ์ลบโพสต์นี้"}, status=403)
+        return HttpResponseForbidden("คุณไม่มีสิทธิ์ลบโพสต์นี้")
+
+    if request.method in ["POST", "DELETE"]:
+        post_id_val = post.id
+        if post.media:
+            try:
+                post.media.delete(save=False)
+            except Exception:
+                pass
+        post.delete()
+
+        if request.headers.get("x-requested-with") == "XMLHttpRequest" or "application/json" in request.headers.get("Accept", ""):
+            return JsonResponse({"success": True, "post_id": post_id_val, "message": "ลบโพสต์สำเร็จ"})
+
+        messages.success(request, "ลบโพสต์เรียบร้อยแล้ว")
+        referer = request.META.get("HTTP_REFERER")
+        if referer and "/edit" not in referer and "/delete" not in referer:
+            return redirect(referer)
+        return redirect("feed")
+
+    return redirect("feed")
+
 
 
 @require_POST

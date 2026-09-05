@@ -26,9 +26,9 @@ admin.site.register(User, CustomUserAdmin)
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ('id', 'author', 'short_text', 'created_at', 'has_media')
+    list_display = ('id', 'author', 'location_name', 'short_text', 'created_at', 'has_media')
     list_filter = ('created_at', 'tags')
-    search_fields = ('text', 'author__username', 'author__first_name')
+    search_fields = ('text', 'author__username', 'author__first_name', 'location_name', 'location_url')
     date_hierarchy = 'created_at'
 
     def short_text(self, obj):

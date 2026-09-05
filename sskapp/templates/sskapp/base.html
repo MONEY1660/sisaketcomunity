@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="csrf-token" content="{{ csrf_token }}">
 <title>{% block title %}ศรีสะเกษ Community{% endblock %}</title>
-<link rel="stylesheet" href="{% static 'sskapp/css/style.css' %}">
+<link rel="stylesheet" href="{% static 'sskapp/css/style.css' %}?v=2.1">
 {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
@@ -51,7 +51,7 @@
 {% block content %}{% endblock %}
 
 <div class="ssk-toast" id="ssk-toast" role="status" aria-live="polite"></div>
-<script src="{% static 'sskapp/js/main.js' %}"></script>
+<script src="{% static 'sskapp/js/main.js' %}?v=2.1"></script>
 {% block extra_scripts %}{% endblock %}
 </body>
 </html>

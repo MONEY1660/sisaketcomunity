@@ -1,39 +1,62 @@
 {% extends "sskapp/base.html" %}
 {% load static %}
-{% block title %}โพสต์เรื่องราวใหม่ — ศรีสะเกษ Community{% endblock %}
+{% block title %}แก้ไขเรื่องราว — ศรีสะเกษ Community{% endblock %}
 
 {% block content %}
 <div class="ssk-page">
-  <form class="ssk-composer" method="post" enctype="multipart/form-data" action="{% url 'create_post' %}" id="ssk-post-form">
+  <form class="ssk-composer" method="post" enctype="multipart/form-data" action="{% url 'edit_post' post.id %}" id="ssk-post-form">
     {% csrf_token %}
     <div class="ssk-composer__head">
-      <h1>เล่าเรื่องราวของคุณ</h1>
-      <p>แบ่งปันเรื่องราว ภาพ หรือวิดีโอจากศรีสะเกษให้ชุมชนได้เห็น</p>
+      <h1>แก้ไขเรื่องราวของคุณ</h1>
+      <p>แก้ไขข้อความ สื่อ แท็ก หรือข้อมูลตำแหน่งของโพสต์นี้</p>
     </div>
 
     <div class="ssk-composer__author">
       <span class="ssk-avatar" aria-hidden="true">{{ display_name|default:'ศ'|first|upper }}</span>
       <div>
         <div class="ssk-card__author-name">{{ display_name|default:"ผู้ใช้ศรีสะเกษ" }}</div>
-        <div class="ssk-card__meta">โพสต์แบบสาธารณะ · มองเห็นได้ทุกคน</div>
+        <div class="ssk-card__meta">แก้ไขโพสต์ · มองเห็นได้ทุกคน</div>
       </div>
     </div>
 
     <div class="ssk-composer__body">
+      <!-- Textarea -->
       <div class="ssk-field">
         <label for="post-text">ข้อความ</label>
         <textarea id="post-text" name="text" class="ssk-textarea" maxlength="1000"
-          placeholder="วันนี้ไปเที่ยวไหนมา หรืออยากเล่าเรื่องอะไรให้ชาวศรีสะเกษฟัง…"></textarea>
-        <div class="ssk-charcount"><span id="ssk-charcount">0</span>/1000</div>
+          placeholder="วันนี้ไปเที่ยวไหนมา หรืออยากเล่าเรื่องอะไรให้ชาวศรีสะเกษฟัง…">{{ post.text }}</textarea>
+        <div class="ssk-charcount"><span id="ssk-charcount">{{ post.text|length }}</span>/1000</div>
       </div>
 
+      <!-- Media Section -->
       <div class="ssk-field">
         <label>รูปภาพหรือวิดีโอ</label>
+
+        {% if post.media %}
+        <div class="ssk-existing-media" id="ssk-existing-media-box">
+          <div class="ssk-existing-media__preview">
+            {% if post.is_video %}
+              <video src="{{ post.media.url }}" controls muted style="max-height: 180px; border-radius: 8px; max-width: 100%;"></video>
+            {% else %}
+              <img src="{{ post.media.url }}" alt="สื่อปัจจุบัน" style="max-height: 180px; border-radius: 8px; object-fit: cover;">
+            {% endif %}
+          </div>
+          <div class="ssk-existing-media__info">
+            <span class="ssk-existing-media__badge">สื่อปัจจุบันในโพสต์</span>
+            <label class="ssk-checkbox ssk-remove-media-label" for="remove_media">
+              <input type="checkbox" name="remove_media" value="1" id="remove_media">
+              <span>ลบสื่อนี้ออกจากโพสต์</span>
+            </label>
+          </div>
+        </div>
+        <label class="ssk-sublabel" style="margin-top: 10px;">หรืออัปโหลดสื่อใหม่เพื่อแทนที่:</label>
+        {% endif %}
+
         <div class="ssk-dropzone" id="ssk-dropzone">
           <div class="ssk-dropzone__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" width="44" height="44"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
           </div>
-          <div class="ssk-dropzone__title">ลากไฟล์มาวาง หรือคลิกเพื่อเลือกไฟล์</div>
+          <div class="ssk-dropzone__title">ลากไฟล์มาวาง หรือคลิกเพื่อเลือกไฟล์ใหม่</div>
           <div class="ssk-dropzone__hint">รองรับ JPG, PNG, MP4 · สูงสุด 50MB ต่อไฟล์</div>
           <input type="file" name="media" id="post-media" accept="image/*,video/*" multiple aria-label="อัปโหลดรูปภาพหรือวิดีโอ">
         </div>
@@ -48,7 +71,7 @@
         </label>
 
         <div class="ssk-gps-box">
-          <!-- Action Buttons: Permission / Current Location / Google Maps -->
+          <!-- Action Buttons -->
           <div class="ssk-gps-action-row">
             <button type="button" class="btn btn--secondary ssk-gps-trigger-btn" id="btn-get-gps">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="12 2 15 8 22 9 17 14 18 21 12 17 6 21 7 14 2 9 9 8 12 2"/></svg>
@@ -61,31 +84,31 @@
           </div>
 
           <!-- Hidden inputs for coordinates -->
-          <input type="hidden" id="post-latitude" name="latitude">
-          <input type="hidden" id="post-longitude" name="longitude">
+          <input type="hidden" id="post-latitude" name="latitude" value="{{ latitude_val }}">
+          <input type="hidden" id="post-longitude" name="longitude" value="{{ longitude_val }}">
 
           <!-- GPS Result / Status Display -->
-          <div id="ssk-gps-result" class="ssk-gps-result" style="display: none;">
+          <div id="ssk-gps-result" class="ssk-gps-result" style="{% if post.latitude and post.longitude %}display: block;{% else %}display: none;{% endif %}">
             <div class="ssk-gps-result__header">
               <div class="ssk-gps-result__title">
-                <span class="ssk-badge-success">✓ ระบุตำแหน่งพิกัดสำเร็จ</span>
-                <span id="coords-display" class="ssk-coords-text">--</span>
+                <span class="ssk-badge-success">✓ ระบุตำแหน่งพิกัดแล้ว</span>
+                <span id="coords-display" class="ssk-coords-text">{% if post.latitude and post.longitude %}{{ latitude_val }}, {{ longitude_val }}{% else %}--{% endif %}</span>
               </div>
               <button type="button" id="btn-clear-gps" class="btn-clear-gps" title="ยกเลิกพิกัดนี้">✕ ลบตำแหน่ง</button>
             </div>
             <div class="ssk-gps-result__footer">
-              <a href="#" id="preview-gmaps-link" target="_blank" rel="noopener noreferrer" class="btn-gmaps-preview-card" title="เปิดดูบน Google Maps">
+              <a href="{{ post.google_maps_url|default:'#' }}" id="preview-gmaps-link" target="_blank" rel="noopener noreferrer" class="btn-gmaps-preview-card" title="เปิดดูบน Google Maps">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                 <span>คลิกเพื่อดูและนำทางใน Google Maps ↗</span>
               </a>
             </div>
           </div>
 
-          <!-- Location Name Input -->
+          <!-- Location Inputs Grid -->
           <div class="ssk-location-inputs-grid">
             <div class="ssk-field-group">
               <label for="location-name-input" class="ssk-sublabel">ชื่อสถานที่หรือจุดเช็คอิน:</label>
-              <input type="text" id="location-name-input" name="location_name" class="ssk-input" placeholder="เช่น สวนทุเรียนภูเขาไฟ, ผามออีแดง, ตัวเมืองศรีสะเกษ">
+              <input type="text" id="location-name-input" name="location_name" class="ssk-input" value="{{ post.location_name|default:'' }}" placeholder="เช่น สวนทุเรียนภูเขาไฟ, ผามออีแดง, ตัวเมืองศรีสะเกษ">
             </div>
 
             <!-- Location URL Field -->
@@ -94,8 +117,8 @@
                 <span>ลิงก์สถานที่ (Google Maps URL):</span>
               </label>
               <div class="ssk-url-input-wrap">
-                <input type="url" id="post-location-url" name="location_url" class="ssk-input" placeholder="https://www.google.com/maps/... (สร้างให้อัตโนมัติเมื่อขอสิทธิ์)">
-                <a href="#" id="btn-open-location-url" target="_blank" rel="noopener noreferrer" class="ssk-url-open-link" title="เปิดดูลิงก์นี้" style="display: none;">
+                <input type="url" id="post-location-url" name="location_url" class="ssk-input" value="{{ post.location_url|default:'' }}" placeholder="https://www.google.com/maps/... (สร้างให้อัตโนมัติเมื่อขอสิทธิ์)">
+                <a href="{{ post.location_url|default:'#' }}" id="btn-open-location-url" target="_blank" rel="noopener noreferrer" class="ssk-url-open-link" title="เปิดดูลิงก์นี้" style="{% if post.location_url %}display: inline-flex;{% else %}display: none;{% endif %}">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                 </a>
               </div>
@@ -105,12 +128,13 @@
         </div>
       </div>
 
+      <!-- Tags Section -->
       <div class="ssk-field">
         <label for="tag-input-field">แท็ก</label>
-        <div class="ssk-tag-input" id="ssk-tag-input">
+        <div class="ssk-tag-input" id="ssk-tag-input" data-initial-tags="{{ existing_tags_json }}">
           <input type="text" id="tag-input-field" placeholder="พิมพ์แท็กแล้วกด Enter เช่น ทุเรียนลำดวน">
         </div>
-        <input type="hidden" name="tags" id="tags-hidden-field">
+        <input type="hidden" name="tags" id="tags-hidden-field" value="{{ existing_tags|join:',' }}">
         <div class="ssk-tag-suggestions">
           <span class="ssk-tag-suggestion" data-tag="เขาพระวิหาร">เขาพระวิหาร</span>
           <span class="ssk-tag-suggestion" data-tag="ทุเรียนภูเขาไฟ">ทุเรียนภูเขาไฟ</span>
@@ -123,7 +147,7 @@
 
     <div class="ssk-composer__footer">
       <a href="{% url 'feed' %}" class="btn btn--outline">ยกเลิก</a>
-      <button type="submit" class="btn btn--primary" id="ssk-submit-btn" disabled>เผยแพร่โพสต์</button>
+      <button type="submit" class="btn btn--primary" id="ssk-submit-btn">บันทึกการแก้ไข</button>
     </div>
   </form>
 </div>

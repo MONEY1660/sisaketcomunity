@@ -14,6 +14,7 @@ class Post(models.Model):
     media = models.FileField(upload_to='post_media/', blank=True, null=True)
     tags = models.ManyToManyField(Tag, blank=True)
     location_name = models.CharField(max_length=255, blank=True, null=True)
+    location_url = models.URLField(max_length=500, blank=True, null=True)
     latitude = models.DecimalField(max_digits=10, decimal_places=7, blank=True, null=True)
     longitude = models.DecimalField(max_digits=10, decimal_places=7, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -28,6 +29,8 @@ class Post(models.Model):
 
     @property
     def google_maps_url(self):
+        if self.location_url:
+            return self.location_url
         if self.latitude is not None and self.longitude is not None:
             return f"https://www.google.com/maps?q={self.latitude},{self.longitude}"
         if self.location_name:

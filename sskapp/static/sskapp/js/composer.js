@@ -15,27 +15,39 @@
   var tagInputField = document.getElementById("tag-input-field");
   var tagsHidden = document.getElementById("tags-hidden-field");
 
-  // GPS Check-in elements
+  // GPS & Location elements
   var btnGetGps = document.getElementById("btn-get-gps");
   var btnPickMap = document.getElementById("btn-pick-map");
   var gpsBtnText = document.getElementById("gps-btn-text");
   var postLatInput = document.getElementById("post-latitude");
   var postLngInput = document.getElementById("post-longitude");
   var locationNameInput = document.getElementById("location-name-input");
+  var postLocationUrl = document.getElementById("post-location-url");
+  var btnOpenLocationUrl = document.getElementById("btn-open-location-url");
   var gpsResultBox = document.getElementById("ssk-gps-result");
   var coordsDisplay = document.getElementById("coords-display");
   var previewGmapsLink = document.getElementById("preview-gmaps-link");
   var btnClearGps = document.getElementById("btn-clear-gps");
+  var existingMediaBox = document.getElementById("ssk-existing-media-box");
+  var removeMediaCheckbox = document.getElementById("remove_media");
 
   var tags = [];
   var mediaFiles = [];
 
   function refreshSubmitState() {
     var hasText = (textArea && textArea.value.trim().length > 0);
-    var hasMedia = mediaFiles.length > 0;
+    var hasExistingMedia = (existingMediaBox && (!removeMediaCheckbox || !removeMediaCheckbox.checked));
+    var hasMedia = (mediaFiles.length > 0 || hasExistingMedia);
     var hasGps = (postLatInput && postLatInput.value && postLngInput && postLngInput.value);
     var hasLocationName = (locationNameInput && locationNameInput.value.trim().length > 0);
-    submitBtn.disabled = !(hasText || hasMedia || hasGps || hasLocationName);
+    var hasLocationUrl = (postLocationUrl && postLocationUrl.value.trim().length > 0);
+    if (submitBtn) {
+      submitBtn.disabled = !(hasText || hasMedia || hasGps || hasLocationName || hasLocationUrl);
+    }
+  }
+
+  if (removeMediaCheckbox) {
+    removeMediaCheckbox.addEventListener("change", refreshSubmitState);
   }
 
   /* ---- text ---- */
@@ -171,8 +183,32 @@
     });
   });
 
+  // Initialize existing tags if available (e.g. in Edit mode)
+  if (tagInputWrap && tagInputWrap.dataset.initialTags) {
+    try {
+      var initial = JSON.parse(tagInputWrap.dataset.initialTags);
+      if (Array.isArray(initial)) {
+        initial.forEach(function (t) {
+          if (t && tags.indexOf(t) === -1) tags.push(t);
+        });
+        renderTags();
+      }
+    } catch (e) {
+      // fallback
+    }
+  } else if (tagsHidden && tagsHidden.value) {
+    tagsHidden.value.split(",").forEach(function (t) {
+      var trimmed = t.trim();
+      if (trimmed && tags.indexOf(trimmed) === -1) tags.push(trimmed);
+    });
+    renderTags();
+  }
+
+  // Initial state check
+  refreshSubmitState();
+
   /* ============================================================
-     GPS Location Fetching & Google Maps Link
+     GPS Location Fetching, Geolocation Permission & Google Maps
      ============================================================ */
   function setGpsLocation(lat, lng) {
     var latNum = parseFloat(lat);
@@ -181,6 +217,7 @@
 
     var latStr = latNum.toFixed(7);
     var lngStr = lngNum.toFixed(7);
+    var gmapUrl = "https://www.google.com/maps?q=" + latStr + "," + lngStr;
 
     if (postLatInput) postLatInput.value = latStr;
     if (postLngInput) postLngInput.value = lngStr;
@@ -190,7 +227,16 @@
     }
 
     if (previewGmapsLink) {
-      previewGmapsLink.href = "https://www.google.com/maps?q=" + latStr + "," + lngStr;
+      previewGmapsLink.href = gmapUrl;
+    }
+
+    // Auto-populate the Location URL field if empty or previously auto-filled
+    if (postLocationUrl) {
+      if (!postLocationUrl.value.trim() || postLocationUrl.dataset.autoFilled === "true") {
+        postLocationUrl.value = gmapUrl;
+        postLocationUrl.dataset.autoFilled = "true";
+      }
+      updateUrlOpenButton();
     }
 
     if (gpsResultBox) {
@@ -198,8 +244,8 @@
     }
 
     // Default place name if empty
-    if (locationNameInput && !locationNameInput.value.trim()) {
-      locationNameInput.value = "ตำแหน่งปัจจุบัน (" + latNum.toFixed(4) + ", " + lngNum.toFixed(4) + ")";
+    if (locationNameInput && (!locationNameInput.value.trim() || locationNameInput.dataset.autoFilled === "true")) {
+      locationNameInput.value = "พิกัดปัจจุบัน (" + latNum.toFixed(4) + ", " + lngNum.toFixed(4) + ")";
       locationNameInput.dataset.autoFilled = "true";
 
       // Try reverse geocode to get a nice district / locality name in Thai
@@ -210,7 +256,7 @@
           if (data && locationNameInput && locationNameInput.dataset.autoFilled === "true") {
             var place = data.name;
             if (!place && data.address) {
-              place = data.address.tourism || data.address.amenity || data.address.suburb || data.address.city_district || data.address.town || data.address.city || data.address.county || data.address.state;
+              place = data.address.tourism || data.address.amenity || data.address.village || data.address.suburb || data.address.city_district || data.address.town || data.address.city || data.address.county || data.address.state;
             }
             if (place) {
               locationNameInput.value = place.trim();
@@ -228,14 +274,51 @@
   function clearGpsLocation() {
     if (postLatInput) postLatInput.value = "";
     if (postLngInput) postLngInput.value = "";
-    if (locationNameInput) {
+    if (locationNameInput && locationNameInput.dataset.autoFilled === "true") {
       locationNameInput.value = "";
       delete locationNameInput.dataset.autoFilled;
+    }
+    if (postLocationUrl && postLocationUrl.dataset.autoFilled === "true") {
+      postLocationUrl.value = "";
+      delete postLocationUrl.dataset.autoFilled;
+      updateUrlOpenButton();
     }
     if (gpsResultBox) {
       gpsResultBox.style.display = "none";
     }
     refreshSubmitState();
+  }
+
+  function updateUrlOpenButton() {
+    if (!postLocationUrl || !btnOpenLocationUrl) return;
+    var url = postLocationUrl.value.trim();
+    if (url && (url.indexOf("http://") === 0 || url.indexOf("https://") === 0)) {
+      btnOpenLocationUrl.href = url;
+      btnOpenLocationUrl.style.display = "inline-flex";
+    } else {
+      btnOpenLocationUrl.style.display = "none";
+    }
+  }
+
+  // Parse coordinates if user pastes a Google Maps URL into postLocationUrl
+  function extractCoordsFromUrl(url) {
+    if (!url) return null;
+    // Format 1: @15.1186,104.3225
+    var matchAt = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (matchAt) {
+      return { lat: parseFloat(matchAt[1]), lng: parseFloat(matchAt[2]) };
+    }
+    // Format 2: q=15.1186,104.3225 or query=15.1186,104.3225
+    var matchQ = url.match(/[?&](?:q|query)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (matchQ) {
+      return { lat: parseFloat(matchQ[1]), lng: parseFloat(matchQ[2]) };
+    }
+    // Format 3: ll=15.1186,104.3225
+    var matchLl = url.match(/[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (matchLl) {
+      return { lat: parseFloat(matchLl[1]), lng: parseFloat(matchLl[2]) };
+    }
+    return null;
   }
 
   if (btnClearGps) {
@@ -249,59 +332,115 @@
     });
   }
 
+  if (postLocationUrl) {
+    postLocationUrl.addEventListener("input", function () {
+      delete postLocationUrl.dataset.autoFilled;
+      updateUrlOpenButton();
+      var extracted = extractCoordsFromUrl(postLocationUrl.value.trim());
+      if (extracted) {
+        setGpsLocation(extracted.lat, extracted.lng);
+        if (window.sskToast) {
+          window.sskToast("ตรวจพบพิกัดจากลิงก์ Google Maps เรียบร้อย! 📍");
+        }
+      }
+      refreshSubmitState();
+    });
+  }
+
+  /**
+   * Request Geolocation permission and locate user
+   * @param {boolean} openMapsInNewTab - whether to open Google Maps after locating
+   */
+  function requestLocationPermissionAndLocate(openMapsInNewTab) {
+    if (!navigator.geolocation) {
+      alert("ขออภัย อุปกรณ์หรือเบราว์เซอร์ของคุณไม่รองรับการดึงพิกัดตำแหน่ง (Geolocation)");
+      if (openMapsInNewTab) {
+        window.open("https://www.google.com/maps/search/?api=1&query=%E0%B8%A8%E0%B8%A3%E0%B8%B5%E0%B8%AA%E0%B8%B0%E0%B8%81%E0%B8%A9", "_blank");
+      }
+      return;
+    }
+
+    if (btnGetGps) btnGetGps.disabled = true;
+    if (btnPickMap) btnPickMap.disabled = true;
+
+    if (gpsBtnText) {
+      gpsBtnText.textContent = "🛰️ กำลังขอสิทธิ์ & ค้นหาตำแหน่ง…";
+    }
+    if (window.sskToast) {
+      window.sskToast("กำลังขอสิทธิ์และค้นหาพิกัดตำแหน่งของคุณ…");
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      function (pos) {
+        if (btnGetGps) btnGetGps.disabled = false;
+        if (btnPickMap) btnPickMap.disabled = false;
+        if (gpsBtnText) {
+          gpsBtnText.textContent = "📍 ดึงตำแหน่งปัจจุบันอีกครั้ง (GPS)";
+        }
+
+        var lat = pos.coords.latitude;
+        var lng = pos.coords.longitude;
+
+        setGpsLocation(lat, lng);
+
+        if (window.sskToast) {
+          window.sskToast("ระบุพิกัดตำแหน่งปัจจุบันสำเร็จแล้ว! 📍");
+        }
+
+        if (openMapsInNewTab) {
+          var targetUrl = "https://www.google.com/maps?q=" + lat.toFixed(7) + "," + lng.toFixed(7);
+          window.open(targetUrl, "_blank");
+        }
+      },
+      function (err) {
+        if (btnGetGps) btnGetGps.disabled = false;
+        if (btnPickMap) btnPickMap.disabled = false;
+        if (gpsBtnText) {
+          gpsBtnText.textContent = "📍 ขอสิทธิ์ & ระบุตำแหน่งปัจจุบัน";
+        }
+
+        var msg = "ไม่สามารถระบุพิกัดได้ กรุณาลองใหม่อีกครั้ง";
+        if (err.code === 1) {
+          msg = "คุณปฏิเสธการให้สิทธิ์เข้าถึงตำแหน่ง (กรุณาอนุญาต Location Permission ในเบราว์เซอร์และเปิด GPS บนอุปกรณ์เพื่อระบุพิกัดอัตโนมัติ)";
+        } else if (err.code === 2) {
+          msg = "ไม่พบสัญญาณพิกัดตำแหน่งจากอุปกรณ์ กรุณาเปิดระบบระบุตำแหน่ง (GPS/Location) บนเครื่องของคุณ";
+        } else if (err.code === 3) {
+          msg = "การค้นหาพิกัดตำแหน่งใช้เวลานานเกินไป กรุณากดลองใหม่อีกครั้ง";
+        }
+        alert(msg);
+
+        if (openMapsInNewTab) {
+          // Open general map search for Sisaket
+          window.open("https://www.google.com/maps/search/?api=1&query=%E0%B8%A8%E0%B8%A3%E0%B8%B5%E0%B8%AA%E0%B8%B0%E0%B8%81%E0%B8%A9", "_blank");
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 0
+      }
+    );
+  }
+
+  // Trigger GPS permission & locate on button click
   if (btnGetGps) {
     btnGetGps.addEventListener("click", function () {
-      if (!navigator.geolocation) {
-        alert("ขออภัย อุปกรณ์หรือเบราว์เซอร์ของคุณไม่รองรับการดึงพิกัด GPS");
-        return;
+      requestLocationPermissionAndLocate(false);
+    });
+  }
+
+  // "เลือกบน Google Maps" button: requests permission, locates user, and opens Google Maps!
+  if (btnPickMap) {
+    btnPickMap.addEventListener("click", function (e) {
+      e.preventDefault();
+      // If coordinates already found, just open the Google Maps URL
+      if (postLatInput && postLatInput.value && postLngInput && postLngInput.value) {
+        var existingUrl = "https://www.google.com/maps?q=" + postLatInput.value + "," + postLngInput.value;
+        window.open(existingUrl, "_blank");
+      } else {
+        // Request permission and locate, then open Google Maps
+        requestLocationPermissionAndLocate(true);
       }
-
-      btnGetGps.disabled = true;
-      if (gpsBtnText) {
-        gpsBtnText.textContent = "🛰️ กำลังค้นหาตำแหน่ง GPS ของคุณ…";
-      }
-      if (window.sskToast) {
-        window.sskToast("กำลังค้นหาพิกัด GPS จากอุปกรณ์…");
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        function (pos) {
-          btnGetGps.disabled = false;
-          if (gpsBtnText) {
-            gpsBtnText.textContent = "📍 ดึงตำแหน่งปัจจุบันของฉัน (GPS)";
-          }
-
-          var lat = pos.coords.latitude;
-          var lng = pos.coords.longitude;
-
-          setGpsLocation(lat, lng);
-
-          if (window.sskToast) {
-            window.sskToast("ดึงพิกัดตำแหน่ง GPS สำเร็จแล้ว! 📍");
-          }
-        },
-        function (err) {
-          btnGetGps.disabled = false;
-          if (gpsBtnText) {
-            gpsBtnText.textContent = "📍 ดึงตำแหน่งปัจจุบันของฉัน (GPS)";
-          }
-
-          var msg = "ไม่สามารถระบุพิกัดได้ กรุณาลองใหม่อีกครั้ง";
-          if (err.code === 1) {
-            msg = "คุณปฏิเสธการเข้าถึงตำแหน่ง GPS (กรุณาอนุญาตการเข้าถึง Location ในการตั้งค่าเบราว์เซอร์และเปิด GPS/Location บนอุปกรณ์)";
-          } else if (err.code === 2) {
-            msg = "ไม่พบสัญญาณตำแหน่งพิกัดจากอุปกรณ์ กรุณาเปิด GPS/Location ในเครื่องก่อนใช้งาน";
-          } else if (err.code === 3) {
-            msg = "การค้นหาพิกัด GPS ใช้เวลานานเกินไป กรุณากดลองใหม่อีกครั้ง";
-          }
-          alert(msg);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 12000,
-          maximumAge: 0
-        }
-      );
     });
   }
 
