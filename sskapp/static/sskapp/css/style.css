@@ -2925,5 +2925,282 @@ select.form-control {
   color: #EF5350 !important;
 }
 
+/* ============================================================
+   Fullscreen Image Lightbox & Interactive Zoom Viewer
+   ============================================================ */
 
+/* Lock body scrolling when lightbox is opened */
+body.ssk-lightbox-open {
+  overflow: hidden !important;
+  touch-action: none;
+}
 
+/* Clickable image indicators */
+.ssk-card__img,
+.ssk-card__media img,
+.ssk-profile-avatar-img,
+.ssk-avatar-preview-small,
+[data-zoomable] {
+  cursor: zoom-in !important;
+  transition: transform 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
+}
+
+.ssk-card__media {
+  position: relative;
+  overflow: hidden;
+}
+
+.ssk-card__media:hover .ssk-card__img,
+.ssk-card__media:hover img {
+  filter: brightness(0.96);
+}
+
+/* Zoom hint badge on card image hover */
+.ssk-card__media::after {
+  content: '🔍 คลิกดูรูปเต็ม';
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(26, 19, 14, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #FFF9F1;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 999px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 2;
+}
+
+.ssk-card__media:hover::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* If post media contains video, do not show zoom hint badge */
+.ssk-card__media:has(video)::after {
+  display: none !important;
+}
+
+/* Lightbox Modal Root */
+.ssk-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.ssk-lightbox.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Frosted glass backdrop */
+.ssk-lightbox__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(14, 11, 8, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 1;
+  cursor: zoom-out;
+}
+
+/* Lightbox Header / Toolbar */
+.ssk-lightbox__toolbar {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px;
+  background: linear-gradient(180deg, rgba(14, 11, 8, 0.85) 0%, rgba(14, 11, 8, 0) 100%);
+}
+
+.ssk-lightbox__info {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1;
+}
+
+.ssk-lightbox__caption {
+  color: rgba(255, 249, 241, 0.85);
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.ssk-lightbox__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(36, 28, 22, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 5px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+.ssk-lightbox__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #FBF1E4;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.12s ease, color 0.15s ease;
+  padding: 0;
+}
+
+.ssk-lightbox__btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--ssk-gold, #F0A93C);
+  transform: scale(1.06);
+}
+
+.ssk-lightbox__btn:active {
+  transform: scale(0.95);
+}
+
+.ssk-lightbox__btn--close:hover {
+  background: rgba(216, 85, 30, 0.35);
+  color: #FF7043;
+}
+
+.ssk-lightbox__scale {
+  display: inline-block;
+  min-width: 44px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ssk-gold, #F0A93C);
+  user-select: none;
+}
+
+/* Lightbox Viewport & Stage */
+.ssk-lightbox__viewport {
+  position: relative;
+  z-index: 5;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  cursor: zoom-out;
+}
+
+.ssk-lightbox__viewport.is-zoomed {
+  cursor: grab;
+}
+
+.ssk-lightbox__stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.ssk-lightbox__img {
+  max-width: 90vw;
+  max-height: 80vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  transform-origin: center center;
+  user-select: none;
+  -webkit-user-drag: none;
+  cursor: zoom-in;
+  will-change: transform;
+}
+
+/* Lightbox Footer Helper Bar */
+.ssk-lightbox__footer {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  pointer-events: none;
+  background: linear-gradient(0deg, rgba(14, 11, 8, 0.85) 0%, rgba(14, 11, 8, 0) 100%);
+}
+
+.ssk-lightbox__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(36, 28, 22, 0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: rgba(255, 249, 241, 0.8);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+  .ssk-lightbox__toolbar {
+    padding: 10px 14px;
+  }
+  .ssk-lightbox__caption {
+    display: none;
+  }
+  .ssk-lightbox__controls {
+    margin-left: auto;
+    gap: 4px;
+    padding: 4px 6px;
+  }
+  .ssk-lightbox__btn {
+    width: 34px;
+    height: 34px;
+  }
+  .ssk-lightbox__scale {
+    min-width: 38px;
+    font-size: 0.78rem;
+  }
+  .ssk-lightbox__hint {
+    font-size: 0.72rem;
+    padding: 5px 12px;
+  }
+  .ssk-card__media::after {
+    font-size: 0.72rem;
+    padding: 4px 9px;
+  }
+}

@@ -501,6 +501,399 @@
         closeAllMenus();
       }
     });
+
+    // 4. Initialize Fullscreen Image Lightbox & Zoom Engine
+    initImageLightbox();
+  }
+
+  // ============================================================
+  // Fullscreen Image Lightbox & Interactive Zoom Engine
+  // ============================================================
+  function initImageLightbox() {
+    var lightbox = document.getElementById("ssk-lightbox");
+    if (!lightbox) return;
+
+    var backdrop = document.getElementById("ssk-lightbox-backdrop");
+    var imgEl = document.getElementById("ssk-lightbox-img");
+    var captionEl = document.getElementById("ssk-lightbox-caption");
+    var scaleEl = document.getElementById("ssk-lightbox-scale");
+    var viewport = document.getElementById("ssk-lightbox-viewport");
+    var stage = document.getElementById("ssk-lightbox-stage");
+    var btnZoomIn = document.getElementById("ssk-lightbox-zoom-in");
+    var btnZoomOut = document.getElementById("ssk-lightbox-zoom-out");
+    var btnReset = document.getElementById("ssk-lightbox-reset");
+    var btnRotate = document.getElementById("ssk-lightbox-rotate");
+    var btnDownload = document.getElementById("ssk-lightbox-download");
+    var btnClose = document.getElementById("ssk-lightbox-close");
+
+    // Transform State
+    var scale = 1;
+    var posX = 0;
+    var posY = 0;
+    var rotation = 0;
+    var minScale = 0.5;
+    var maxScale = 5;
+
+    // Mouse Dragging State
+    var isDragging = false;
+    var startDragX = 0;
+    var startDragY = 0;
+    var currentTranslateX = 0;
+    var currentTranslateY = 0;
+    var hasMoved = false;
+
+    // Touch State
+    var touchStartDist = 0;
+    var touchStartScale = 1;
+    var touchStartX = 0;
+    var touchStartY = 0;
+    var touchTranslateX = 0;
+    var touchTranslateY = 0;
+    var isTouchPanning = false;
+    var lastTapTime = 0;
+
+    function updateTransform(withTransition) {
+      if (withTransition) {
+        imgEl.style.transition = "transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)";
+      } else {
+        imgEl.style.transition = "none";
+      }
+
+      imgEl.style.transform =
+        "translate3d(" + posX + "px, " + posY + "px, 0) scale(" + scale + ") rotate(" + rotation + "deg)";
+
+      if (scaleEl) {
+        scaleEl.textContent = Math.round(scale * 100) + "%";
+      }
+
+      if (scale > 1.05) {
+        viewport.classList.add("is-zoomed");
+        imgEl.style.cursor = isDragging ? "grabbing" : "grab";
+      } else {
+        viewport.classList.remove("is-zoomed");
+        imgEl.style.cursor = "zoom-in";
+      }
+    }
+
+    function setZoom(newScale, withTransition) {
+      scale = Math.min(Math.max(newScale, minScale), maxScale);
+      if (scale <= 1.05) {
+        posX = 0;
+        posY = 0;
+      }
+      updateTransform(withTransition);
+    }
+
+    function resetZoom() {
+      scale = 1;
+      posX = 0;
+      posY = 0;
+      rotation = 0;
+      updateTransform(true);
+    }
+
+    function openLightbox(src, altText) {
+      if (!src) return;
+      imgEl.src = src;
+      imgEl.alt = altText || "ภาพขยาย";
+      if (captionEl) {
+        captionEl.textContent = altText || "";
+      }
+      if (btnDownload) {
+        btnDownload.href = src;
+      }
+
+      resetZoom();
+      lightbox.style.display = "flex";
+      // Trigger reflow for CSS transition
+      void lightbox.offsetWidth;
+      lightbox.classList.add("is-active");
+      lightbox.setAttribute("aria-hidden", "false");
+      document.body.classList.add("ssk-lightbox-open");
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove("is-active");
+      lightbox.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("ssk-lightbox-open");
+      setTimeout(function () {
+        if (!lightbox.classList.contains("is-active")) {
+          lightbox.style.display = "none";
+          imgEl.src = "";
+        }
+      }, 250);
+    }
+
+    // Controls
+    if (btnZoomIn) {
+      btnZoomIn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        setZoom(scale * 1.3, true);
+      });
+    }
+
+    if (btnZoomOut) {
+      btnZoomOut.addEventListener("click", function (e) {
+        e.stopPropagation();
+        setZoom(scale / 1.3, true);
+      });
+    }
+
+    if (btnReset) {
+      btnReset.addEventListener("click", function (e) {
+        e.stopPropagation();
+        resetZoom();
+      });
+    }
+
+    if (btnRotate) {
+      btnRotate.addEventListener("click", function (e) {
+        e.stopPropagation();
+        rotation = (rotation + 90) % 360;
+        updateTransform(true);
+      });
+    }
+
+    if (btnClose) {
+      btnClose.addEventListener("click", function (e) {
+        e.stopPropagation();
+        closeLightbox();
+      });
+    }
+
+    if (backdrop) {
+      backdrop.addEventListener("click", function (e) {
+        closeLightbox();
+      });
+    }
+
+    // Double-click to toggle zoom between 1x and 2.2x
+    imgEl.addEventListener("dblclick", function (e) {
+      e.stopPropagation();
+      e.preventDefault();
+      if (scale > 1.2) {
+        resetZoom();
+      } else {
+        scale = 2.2;
+        var rect = imgEl.getBoundingClientRect();
+        var clickX = e.clientX - (rect.left + rect.width / 2);
+        var clickY = e.clientY - (rect.top + rect.height / 2);
+        posX = -clickX * 0.7;
+        posY = -clickY * 0.7;
+        updateTransform(true);
+      }
+    });
+
+    // Mouse wheel zoom
+    viewport.addEventListener(
+      "wheel",
+      function (e) {
+        e.preventDefault();
+        var delta = e.deltaY < 0 ? 1.18 : 0.85;
+        var prevScale = scale;
+        var targetScale = Math.min(Math.max(scale * delta, minScale), maxScale);
+
+        if (targetScale > 1.05) {
+          var rect = imgEl.getBoundingClientRect();
+          var mouseOffsetX = e.clientX - (rect.left + rect.width / 2);
+          var mouseOffsetY = e.clientY - (rect.top + rect.height / 2);
+          var factor = targetScale / prevScale - 1;
+          posX -= mouseOffsetX * factor * 0.5;
+          posY -= mouseOffsetY * factor * 0.5;
+        } else {
+          posX = 0;
+          posY = 0;
+        }
+
+        scale = targetScale;
+        updateTransform(false);
+      },
+      { passive: false }
+    );
+
+    // Mouse Dragging / Panning
+    function onMouseDown(e) {
+      if (e.button !== 0) return;
+      isDragging = true;
+      hasMoved = false;
+      startDragX = e.clientX;
+      startDragY = e.clientY;
+      currentTranslateX = posX;
+      currentTranslateY = posY;
+      imgEl.style.transition = "none";
+      if (scale > 1.05) {
+        imgEl.style.cursor = "grabbing";
+      }
+      e.preventDefault();
+    }
+
+    function onMouseMove(e) {
+      if (!isDragging) return;
+      var dx = e.clientX - startDragX;
+      var dy = e.clientY - startDragY;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+        hasMoved = true;
+      }
+      posX = currentTranslateX + dx;
+      posY = currentTranslateY + dy;
+      updateTransform(false);
+    }
+
+    function onMouseUp(e) {
+      if (!isDragging) return;
+      isDragging = false;
+      if (scale > 1.05) {
+        imgEl.style.cursor = "grab";
+      } else {
+        imgEl.style.cursor = "zoom-in";
+      }
+      updateTransform(false);
+    }
+
+    viewport.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+
+    // Touch Support (Pinch-to-zoom + 1-finger pan + double-tap)
+    function getTouchDistance(touches) {
+      var dx = touches[0].clientX - touches[1].clientX;
+      var dy = touches[0].clientY - touches[1].clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    viewport.addEventListener(
+      "touchstart",
+      function (e) {
+        if (e.touches.length === 2) {
+          touchStartDist = getTouchDistance(e.touches);
+          touchStartScale = scale;
+        } else if (e.touches.length === 1) {
+          var now = Date.now();
+          if (now - lastTapTime < 300) {
+            // Double-tap detected
+            if (scale > 1.2) {
+              resetZoom();
+            } else {
+              setZoom(2.2, true);
+            }
+            lastTapTime = 0;
+            return;
+          }
+          lastTapTime = now;
+
+          isTouchPanning = true;
+          touchStartX = e.touches[0].clientX;
+          touchStartY = e.touches[0].clientY;
+          touchTranslateX = posX;
+          touchTranslateY = posY;
+        }
+      },
+      { passive: true }
+    );
+
+    viewport.addEventListener(
+      "touchmove",
+      function (e) {
+        if (e.touches.length === 2 && touchStartDist > 0) {
+          e.preventDefault();
+          var dist = getTouchDistance(e.touches);
+          var factor = dist / touchStartDist;
+          scale = Math.min(Math.max(touchStartScale * factor, minScale), maxScale);
+          updateTransform(false);
+        } else if (e.touches.length === 1 && isTouchPanning && scale > 1.05) {
+          e.preventDefault();
+          var dx = e.touches[0].clientX - touchStartX;
+          var dy = e.touches[0].clientY - touchStartY;
+          posX = touchTranslateX + dx;
+          posY = touchTranslateY + dy;
+          updateTransform(false);
+        }
+      },
+      { passive: false }
+    );
+
+    viewport.addEventListener(
+      "touchend",
+      function (e) {
+        if (e.touches.length < 2) {
+          touchStartDist = 0;
+        }
+        if (e.touches.length === 0) {
+          isTouchPanning = false;
+        }
+      },
+      { passive: true }
+    );
+
+    // Viewport background click to close (when not dragged)
+    viewport.addEventListener("click", function (e) {
+      if (e.target === viewport || e.target === stage) {
+        if (!hasMoved) {
+          closeLightbox();
+        }
+      }
+    });
+
+    // Keyboard Shortcuts
+    document.addEventListener("keydown", function (e) {
+      if (!lightbox.classList.contains("is-active")) return;
+
+      if (e.key === "Escape") {
+        closeLightbox();
+      } else if (e.key === "+" || e.key === "=") {
+        setZoom(scale * 1.25, true);
+      } else if (e.key === "-" || e.key === "_") {
+        setZoom(scale / 1.25, true);
+      } else if (e.key === "0" || e.key === "r" || e.key === "R") {
+        resetZoom();
+      } else if (e.key === "ArrowLeft") {
+        posX += 50;
+        updateTransform(true);
+      } else if (e.key === "ArrowRight") {
+        posX -= 50;
+        updateTransform(true);
+      } else if (e.key === "ArrowUp") {
+        posY += 50;
+        updateTransform(true);
+      } else if (e.key === "ArrowDown") {
+        posY -= 50;
+        updateTransform(true);
+      }
+    });
+
+    // Delegated click listener for all zoomable images across the app
+    document.addEventListener("click", function (e) {
+      if (e.target.closest("#ssk-lightbox")) return;
+
+      var img = e.target.closest(
+        ".ssk-card__img, .ssk-card__media img, .ssk-profile-avatar-img, .ssk-avatar-preview-small, [data-zoomable]"
+      );
+      if (!img) return;
+
+      // Ensure we don't catch video elements
+      if (img.tagName.toLowerCase() !== "img") return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      var caption = img.getAttribute("data-caption") || img.alt || "";
+      if (!caption || caption === "ภาพโพสต์" || caption === "โปรไฟล์" || caption === "Avatar Preview") {
+        var card = img.closest(".ssk-card");
+        if (card) {
+          var bodyText = card.querySelector(".ssk-card__body p");
+          if (bodyText) {
+            caption = bodyText.textContent.trim().substring(0, 80);
+          }
+        }
+      }
+
+      var fullSrc = img.getAttribute("data-full-src") || img.currentSrc || img.src;
+      openLightbox(fullSrc, caption);
+    });
+
+    // Expose global helper if needed
+    window.sskOpenImage = openLightbox;
+    window.sskCloseImage = closeLightbox;
   }
 
   // Safe DOM ready execution
